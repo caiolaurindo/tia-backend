@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import { professorRouter } from './modules/professor/professor.controller';
 import { manipuladorDeErros } from './common/middlewares/error.middleware';
+import { turmaRouter } from './modules/turma/turma.controller';
 
 /**
  * @author moisesaraujo
@@ -22,6 +23,7 @@ class App {
 
   private configurarRotas(): void {
     this.app.use('/auth', professorRouter);
+    this.app.use('/turmas', turmaRouter);
   }
 
   private configurarTratamentoDeErros(): void {
