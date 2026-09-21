@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 const dotenv = require("dotenv");
 import { Professor } from '../modules/professor/professor.entity';
+import { Turma } from '../modules/turma/turma.entity';
 
 /**
  * @author moisesaraujo
@@ -19,5 +20,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [Professor],
+  entities: [Professor, Turma],
 });
