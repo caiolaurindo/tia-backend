@@ -3,6 +3,7 @@ import { DataSource } from "typeorm";
 const dotenv = require("dotenv");
 import { Professor } from '../modules/professor/professor.entity';
 import { Turma } from '../modules/turma/turma.entity';
+import { Conquista } from '../modules/conquista/conquista.entity';
 
 /**
  * @author moisesaraujo
@@ -20,5 +21,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [Professor, Turma],
+  entities: [Professor, Turma, Conquista],
 });
