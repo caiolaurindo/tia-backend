@@ -5,13 +5,14 @@ services:
     image: mysql:8.0
     container_name: tia_mysql_db
     restart: always
+
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASS:-root}
       MYSQL_DATABASE: ${DB_NAME:-pi4_db}
-      MYSQL_USER: ${DB_USER:-user_pi4}
-      MYSQL_PASSWORD: ${DB_PASS:-user_pi4_pass}
+
     ports:
       - "${DB_PORT:-3306}:3306"
+
     volumes:
       - mysql_data:/var/lib/mysql
 

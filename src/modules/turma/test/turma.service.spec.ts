@@ -1,12 +1,18 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { Repository } from 'typeorm';
-import { TurmaService } from './turma.service';
-import { Turma } from './turma.entity';
-import { AppError } from '../../common/utils/app-error';
+import { TurmaService } from '../turma.service';
+import { Turma } from '../turma.entity';
+import { AppError } from '../../../common/utils/app-error';
 
 describe('TurmaService (Testes Unitários)', () => {
   let turmaService: TurmaService;
-  let repositorioMock: jest.Mocked<Repository<Turma>>;
+  let repositorioMock: {
+    find: jest.Mock;
+    findOne: jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
+    update: jest.Mock;
+    delete: jest.Mock;
+  };
 
   const professorIdMock = 1;
 
@@ -28,7 +34,7 @@ describe('TurmaService (Testes Unitários)', () => {
       save: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
-    } as unknown as jest.Mocked<Repository<Turma>>;
+    };
 
     turmaService = new TurmaService(repositorioMock);
   });
