@@ -4,6 +4,7 @@ import { manipuladorDeErros } from './common/middlewares/error.middleware';
 import { turmaRouter } from './modules/turma/turma.controller';
 import { conquistaRouter } from './modules/conquista/conquista.controller';
 import { turmaConquistaRouter } from './modules/turma-conquista/turma-conquista.controller';
+import { alunoRouter } from './modules/aluno/aluno.controller';
 
 /**
  * @author moisesaraujo
@@ -28,6 +29,7 @@ class App {
     this.app.use('/turmas', turmaRouter);
     this.app.use('/conquistas', conquistaRouter);
     this.app.use('/turmas/:turmaId/conquistas', turmaConquistaRouter);
+    this.app.use('/alunos', alunoRouter);
   }
 
   private configurarTratamentoDeErros(): void {
