@@ -5,6 +5,7 @@ import { Professor } from '../modules/professor/professor.entity';
 import { Turma } from '../modules/turma/turma.entity';
 import { Conquista } from '../modules/conquista/conquista.entity';
 import { TurmaConquista } from '../modules/turma-conquista/turma-conquista.entity';
+import { Aluno } from '../modules/aluno/aluno.entity';
 
 /**
  * @author moisesaraujo
@@ -22,5 +23,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [Professor, Turma, Conquista, TurmaConquista],
+  entities: [Professor, Turma, Conquista, TurmaConquista, Aluno],
 });
