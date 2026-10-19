@@ -1,8 +1,10 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 const dotenv = require("dotenv");
+
 import { Professor } from '../modules/professor/professor.entity';
 import { Turma } from '../modules/turma/turma.entity';
+import { Registro } from '../modules/registro/registro.entity';
 import { Conquista } from '../modules/conquista/conquista.entity';
 import { TurmaConquista } from '../modules/turma-conquista/turma-conquista.entity';
 
@@ -13,7 +15,6 @@ import { TurmaConquista } from '../modules/turma-conquista/turma-conquista.entit
 dotenv.config();
 
 export const AppDataSource = new DataSource({
-  
   type: "mysql",
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
@@ -21,6 +22,12 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
   synchronize: true,
-  logging: false,
-  entities: [Professor, Turma, Conquista, TurmaConquista],
+  logging: true,
+  entities: [
+    Professor,
+    Turma,
+    Registro,
+    Conquista,
+    TurmaConquista,
+  ],
 });
