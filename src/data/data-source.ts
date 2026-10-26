@@ -4,9 +4,11 @@ const dotenv = require("dotenv");
 import { Professor } from '../modules/professor/professor.entity';
 import { Turma } from '../modules/turma/turma.entity';
 import { Conquista } from '../modules/conquista/conquista.entity';
+import { Aula } from '../modules/aula/aula.entity';
 
 /**
  * @author moisesaraujo
+ * @author caiolaurindo (inclusão da entidade Aula)
  */
 
 dotenv.config();
@@ -21,5 +23,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [Professor, Turma, Conquista],
+  entities: [Professor, Turma, Conquista, Aula],
 });
