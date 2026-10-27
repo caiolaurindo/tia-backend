@@ -5,10 +5,11 @@ import { Professor } from '../modules/professor/professor.entity';
 import { Turma } from '../modules/turma/turma.entity';
 import { Conquista } from '../modules/conquista/conquista.entity';
 import { Aula } from '../modules/aula/aula.entity';
+import { AulaConquista } from '../modules/aula-conquista/aula-conquista.entity';
 
 /**
  * @author moisesaraujo
- * @author caiolaurindo (inclusão da entidade Aula)
+ * @author caiolaurindo (inclusão das entidades Aula e AulaConquista)
  */
 
 dotenv.config();
@@ -23,5 +24,5 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [Professor, Turma, Conquista, Aula],
+  entities: [Professor, Turma, Conquista, Aula, AulaConquista],
 });
