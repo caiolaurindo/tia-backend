@@ -10,6 +10,7 @@ import { TurmaConquista } from '../modules/turma-conquista/turma-conquista.entit
 
 /**
  * @author moisesaraujo
+ * @author caiolaurindo (inclusão das entidades Aula e AulaConquista)
  */
 
 dotenv.config();

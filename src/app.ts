@@ -6,8 +6,8 @@ import { registroRouter } from './modules/registro/registro.controller';
 
 /**
  * @author moisesaraujo
+ * @author caiolaurindo (inclusão das rotas de Aula e AulaConquista)
  */
-
 class App {
   public app: Application;
 
