@@ -6,10 +6,10 @@ import { Conquista } from '../conquista/conquista.entity';
 @Entity('turma_conquista')
 @Unique(['turmaId', 'conquistaId'])
 export class TurmaConquista extends EntidadeGenerica {
-  @Column({ name: 'turma_id', type: 'bigint' })
+  @Column({ name: 'turma_id', type: 'int' })
   turmaId!: number;
 
-  @Column({ name: 'conquista_id', type: 'bigint' })
+  @Column({ name: 'conquista_id', type: 'int' })
   conquistaId!: number;
 
   @ManyToOne(() => Turma, { onDelete: 'CASCADE' })

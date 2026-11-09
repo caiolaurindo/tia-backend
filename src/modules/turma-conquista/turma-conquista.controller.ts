@@ -21,21 +21,21 @@ turmaConquistaRouter.use(autenticar);
 
 turmaConquistaRouter.get('/', catchAsync(async (req: Request, res: Response) => {
   const turmaId = Number(req.params.turmaId);
-  const professorId = req.usuario.id;
+  const professorId = req.usuario!.sub;
   res.json(await turmaConquistaService.listarConquistasDaTurma(turmaId, professorId));
 }));
 
 turmaConquistaRouter.post('/', validarRequisicao(vincularConquistaSchema), catchAsync(async (req: Request, res: Response) => {
   const turmaId = Number(req.params.turmaId);
   const { conquistaId } = req.body;
-  const professorId = req.usuario.id;
+  const professorId = req.usuario!.sub;
   res.status(201).json(await turmaConquistaService.vincularConquista(turmaId, conquistaId, professorId));
 }));
 
 turmaConquistaRouter.delete('/:conquistaId', catchAsync(async (req: Request, res: Response) => {
   const turmaId = Number(req.params.turmaId);
   const conquistaId = Number(req.params.conquistaId);
-  const professorId = req.usuario.id;
+  const professorId = req.usuario!.sub;
   await turmaConquistaService.desvincularConquista(turmaId, conquistaId, professorId);
   res.status(204).send();
 }));

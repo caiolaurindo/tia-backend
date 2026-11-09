@@ -1,5 +1,7 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { EntidadeGenerica } from '../../common/base/base.entity';
+import { Aluno } from '../aluno/aluno.entity';
+import { Aula } from '../aula/aula.entity';
 
 /**
  * @author josiellysantos
@@ -7,14 +9,14 @@ import { EntidadeGenerica } from '../../common/base/base.entity';
 
 @Entity('registro')
 export class Registro extends EntidadeGenerica {
-  @Column({ name: 'aluno_id', type: 'bigint' })
+  @Column({ name: 'aluno_id', type: 'int' })
   alunoId!: number;
 
-  @Column({ name: 'aula_id', type: 'bigint' })
+  @Column({ name: 'aula_id', type: 'int' })
   aulaId!: number;
 
   @Column({ type: 'date' })
-  data!: Date;
+  data!: Date | string;
 
   @Column({ type: 'text', nullable: true })
   participacao?: string | null;
@@ -30,4 +32,12 @@ export class Registro extends EntidadeGenerica {
 
   @Column({ name: 'observacoes_livres', type: 'text', nullable: true })
   observacoesLivres?: string | null;
+
+  @ManyToOne(() => Aluno, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'aluno_id' })
+  aluno!: Aluno;
+
+  @ManyToOne(() => Aula, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'aula_id' })
+  aula!: Aula;
 }

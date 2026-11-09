@@ -33,7 +33,7 @@ export class TurmaConquistaService {
 
     return this.turmaConquistaRepo.find({
       where: { turmaId },
-      relations: ['conquista'],
+      relations: { conquista: true },
     });
   }
 
@@ -49,7 +49,9 @@ export class TurmaConquistaService {
   }
 
   private async validarPosseTurma(turmaId: number, professorId: number) {
-    const turma = await this.turmaRepo.findOneBy({ id: turmaId, professorId });
+    const turma = await this.turmaRepo.findOne({
+      where: { id: turmaId, professor: { id: professorId } },
+    });
     if (!turma) {
       throw new AppError('Turma não encontrada ou não pertence ao professor.', 404);
     }

@@ -66,7 +66,7 @@ export class AulaConquistaService extends ServiceGenerico<AulaConquista> {
 
     return this.repositorio.find({
       where: { aula: { id: aulaId } },
-      relations: ['conquista'],
+      relations: { conquista: true },
       order: { criadoEm: 'ASC' },
     });
   }
@@ -77,7 +77,7 @@ export class AulaConquistaService extends ServiceGenerico<AulaConquista> {
         id,
         aula: { professor: { id: professorId } },
       },
-      relations: ['aula', 'conquista'],
+      relations: { aula: true, conquista: true },
     });
 
     if (!aulaConquista) {

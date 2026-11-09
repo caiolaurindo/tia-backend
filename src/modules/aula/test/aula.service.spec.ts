@@ -11,17 +11,8 @@ import { AppError } from '../../../common/utils/app-error';
  */
 describe('AulaService (Testes Unitários)', () => {
   let aulaService: AulaService;
-  let aulaRepositorioMock: {
-    find: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
-    update: jest.Mock;
-    delete: jest.Mock;
-  };
-  let turmaRepositorioMock: {
-    findOne: jest.Mock;
-  };
+  let aulaRepositorioMock: any;
+  let turmaRepositorioMock: any;
 
   const professorIdMock = 1;
   const turmaIdMock = 10;
@@ -130,7 +121,7 @@ describe('AulaService (Testes Unitários)', () => {
 
       expect(aulaRepositorioMock.find).toHaveBeenCalledWith({
         where: { professor: { id: professorIdMock } },
-        relations: ['turma'],
+        relations: { turma: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toHaveLength(1);
@@ -147,7 +138,7 @@ describe('AulaService (Testes Unitários)', () => {
           turma: { id: turmaIdMock },
           professor: { id: professorIdMock },
         },
-        relations: ['turma'],
+        relations: { turma: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toEqual([aulaMock]);
@@ -160,7 +151,7 @@ describe('AulaService (Testes Unitários)', () => {
 
       expect(aulaRepositorioMock.findOne).toHaveBeenCalledWith({
         where: { id: 1, professor: { id: professorIdMock } },
-        relations: ['turma'],
+        relations: { turma: true },
       });
       expect(resultado).toEqual(aulaMock);
     });
@@ -241,7 +232,7 @@ describe('AulaService (Testes Unitários)', () => {
 
       expect(aulaRepositorioMock.findOne).toHaveBeenCalledWith({
         where: { id: 1, professor: { id: professorIdMock } },
-        relations: ['turma'],
+        relations: { turma: true },
       });
       expect(aulaRepositorioMock.delete).toHaveBeenCalledWith(1);
     });

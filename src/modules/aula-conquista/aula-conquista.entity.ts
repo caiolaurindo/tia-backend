@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { EntidadeGenerica } from '../../common/base/base.entity';
 import { Aula } from '../aula/aula.entity';
 import { Conquista } from '../conquista/conquista.entity';
@@ -10,6 +10,7 @@ import { Conquista } from '../conquista/conquista.entity';
  * @author caiolaurindo
  */
 @Entity('aula_conquista')
+@Unique(['aula', 'conquista'])
 export class AulaConquista extends EntidadeGenerica {
   @ManyToOne(() => Aula, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'aula_id' })

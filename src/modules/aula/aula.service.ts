@@ -22,7 +22,7 @@ export class AulaService extends ServiceGenerico<Aula> {
   async listarPorProfessor(professorId: number): Promise<Aula[]> {
     return this.repositorio.find({
       where: { professor: { id: professorId } },
-      relations: ['turma'],
+      relations: { turma: true },
       order: { data: 'DESC' },
     });
   }
@@ -33,7 +33,7 @@ export class AulaService extends ServiceGenerico<Aula> {
         turma: { id: turmaId },
         professor: { id: professorId },
       },
-      relations: ['turma'],
+      relations: { turma: true },
       order: { data: 'DESC' },
     });
   }
@@ -41,7 +41,7 @@ export class AulaService extends ServiceGenerico<Aula> {
   async buscarPorIdEProfessor(id: number, professorId: number): Promise<Aula> {
     const aula = await this.repositorio.findOne({
       where: { id, professor: { id: professorId } },
-      relations: ['turma'],
+      relations: { turma: true },
     });
 
     if (!aula) {

@@ -5,14 +5,7 @@ import { AppError } from '../../../common/utils/app-error';
 
 describe('TurmaService (Testes Unitários)', () => {
   let turmaService: TurmaService;
-  let repositorioMock: {
-    find: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
-    update: jest.Mock;
-    delete: jest.Mock;
-  };
+  let repositorioMock: any;
 
   const professorIdMock = 1;
 

@@ -12,20 +12,9 @@ import { AppError } from '../../../common/utils/app-error';
  */
 describe('AulaConquistaService (Testes Unitários)', () => {
   let aulaConquistaService: AulaConquistaService;
-  let aulaConquistaRepositorioMock: {
-    find: jest.Mock;
-    findOne: jest.Mock;
-    create: jest.Mock;
-    save: jest.Mock;
-    update: jest.Mock;
-    delete: jest.Mock;
-  };
-  let aulaRepositorioMock: {
-    findOne: jest.Mock;
-  };
-  let conquistaRepositorioMock: {
-    findOneBy: jest.Mock;
-  };
+  let aulaConquistaRepositorioMock: any;
+  let aulaRepositorioMock: any;
+  let conquistaRepositorioMock: any;
 
   const professorIdMock = 1;
   const aulaIdMock = 10;
@@ -179,7 +168,7 @@ describe('AulaConquistaService (Testes Unitários)', () => {
       });
       expect(aulaConquistaRepositorioMock.find).toHaveBeenCalledWith({
         where: { aula: { id: aulaIdMock } },
-        relations: ['conquista'],
+        relations: { conquista: true },
         order: { criadoEm: 'ASC' },
       });
       expect(resultado).toEqual([aulaConquistaMock]);
@@ -206,7 +195,7 @@ describe('AulaConquistaService (Testes Unitários)', () => {
           id: 1,
           aula: { professor: { id: professorIdMock } },
         },
-        relations: ['aula', 'conquista'],
+        relations: { aula: true, conquista: true },
       });
       expect(resultado).toEqual(aulaConquistaMock);
     });
