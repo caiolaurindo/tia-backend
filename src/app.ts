@@ -1,14 +1,14 @@
 import express, { Application } from 'express';
-import { professorRouter } from './modules/professor/professor.controller';
-import { manipuladorDeErros } from './common/middlewares/error.middleware';
-import { turmaRouter } from './modules/turma/turma.controller';
-import { registroRouter } from './modules/registro/registro.controller';
-import { alunoRouter } from './modules/aluno/aluno.controller';
-import { alunoConquistaRouter } from './modules/aluno-conquista/aluno-conquista.controller';
-import { conquistaRouter } from './modules/conquista/conquista.controller';
-import { turmaConquistaRouter } from './modules/turma-conquista/turma-conquista.controller';
-import { aulaRouter } from './modules/aula/aula.controller';
-import { aulaConquistaRouter } from './modules/aula-conquista/aula-conquista.controller';
+import { manipuladorDeErros } from './middlewares/error.middleware';
+import { professorRouter } from './routes/professor.routes';
+import { turmaRouter } from './routes/turma.routes';
+import { registroRouter } from './routes/registro.routes';
+import { alunoRouter } from './routes/aluno.routes';
+import { alunoConquistaRouter } from './routes/aluno-conquista.routes';
+import { conquistaRouter } from './routes/conquista.routes';
+import { turmaConquistaRouter } from './routes/turma-conquista.routes';
+import { aulaRouter } from './routes/aula.routes';
+import { aulaConquistaRouter } from './routes/aula-conquista.routes';
 
 /**
  * @author moisesaraujo

@@ -2,15 +2,16 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 const dotenv = require("dotenv");
 
-import { Professor } from '../modules/professor/professor.entity';
-import { Turma } from '../modules/turma/turma.entity';
-import { Registro } from '../modules/registro/registro.entity';
-import { Conquista } from '../modules/conquista/conquista.entity';
-import { TurmaConquista } from '../modules/turma-conquista/turma-conquista.entity';
-import { Aluno } from '../modules/aluno/aluno.entity';
-import { AlunoConquista } from '../modules/aluno-conquista/aluno-conquista.entity';
-import { Aula } from '../modules/aula/aula.entity';
-import { AulaConquista } from '../modules/aula-conquista/aula-conquista.entity';
+import { Professor } from '../models/professor.entity';
+import { Turma } from '../models/turma.entity';
+import { Registro } from '../models/registro.entity';
+import { Conquista } from '../models/conquista.entity';
+import { TurmaConquista } from '../models/turma-conquista.entity';
+import { Aluno } from '../models/aluno.entity';
+import { AlunoConquista } from '../models/aluno-conquista.entity';
+import { Aula } from '../models/aula.entity';
+import { AulaConquista } from '../models/aula-conquista.entity';
+
 /**
  * @author moisesaraujo
  * @author caiolaurindo (inclusão das entidades Aula e AulaConquista)
