@@ -7,7 +7,7 @@ import { Turma } from '../modules/turma/turma.entity';
 import { Registro } from '../modules/registro/registro.entity';
 import { Conquista } from '../modules/conquista/conquista.entity';
 import { TurmaConquista } from '../modules/turma-conquista/turma-conquista.entity';
-
+import { Aluno } from '../modules/aluno/aluno.entity';
 /**
  * @author moisesaraujo
  * @author caiolaurindo (inclusão das entidades Aula e AulaConquista)
@@ -30,5 +30,6 @@ export const AppDataSource = new DataSource({
     Registro,
     Conquista,
     TurmaConquista,
+    Aluno,
   ],
 });
