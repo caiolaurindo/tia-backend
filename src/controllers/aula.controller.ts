@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AulaService } from '../services/aula.service';
+import { AppError } from '../utils/app-error';
 
 /**
  * Controller responsável pelo controle de requisições de Aulas.
@@ -11,9 +12,16 @@ export class AulaController {
 
   listar = async (req: Request, res: Response) => {
     const professorId = req.usuario!.sub;
-    const turmaId = req.query.turmaId ? Number(req.query.turmaId) : undefined;
 
-    if (turmaId) {
+    const turmaId = req.query.turmaId
+      ? Number(req.query.turmaId)
+      : undefined;
+
+    if (turmaId !== undefined && (!Number.isInteger(turmaId) || turmaId <= 0)) {
+      throw new AppError('turmaId inválido.', 400);
+    }
+
+    if (turmaId !== undefined) {
       const aulas = await this.aulaService.listarPorTurmaEProfessor(turmaId, professorId);
       return res.json(aulas);
     }
