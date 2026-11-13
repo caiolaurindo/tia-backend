@@ -7,10 +7,24 @@ export class AlunoConquistaController {
 
   listar = async (req: Request, res: Response) => {
     const alunoId = Number(req.query.alunoId);
-    if (!req.query.alunoId || Number.isNaN(alunoId)) {
-      throw new AppError('O parâmetro alunoId é obrigatório e deve ser numérico.', 400);
+
+    if (
+      !req.query.alunoId ||
+      !Number.isInteger(alunoId) ||
+      alunoId <= 0
+    ) {
+      throw new AppError(
+        'O parâmetro alunoId é obrigatório e deve ser numérico.',
+        400
+      );
     }
-    res.json(await this.alunoConquistaService.listarPorAluno(alunoId, req.usuario!.sub));
+
+    res.json(
+      await this.alunoConquistaService.listarPorAluno(
+        alunoId,
+        req.usuario!.sub
+      )
+    );
   };
 
   atribuir = async (req: Request, res: Response) => {
