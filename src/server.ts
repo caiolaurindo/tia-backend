@@ -10,7 +10,10 @@ const PORTA = process.env.PORT;
 
 async function inicializarServidor() {
   try {
-    
+    if (!process.env.JWT_SECRET?.trim()) {
+      throw new Error('Variável de ambiente JWT_SECRET é obrigatória.');
+    }
+
     await AppDataSource.initialize();
     console.log('conectado ao banco de dados MySQL via TypeORM!');
 

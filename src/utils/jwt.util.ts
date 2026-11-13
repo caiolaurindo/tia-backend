@@ -15,7 +15,11 @@ export interface PayloadToken {
 
 export class JwtUtil {
   private static getSecret(): string {
-    return process.env.JWT_SECRET || 'super_secret_key_pi4';
+    const secret = process.env.JWT_SECRET?.trim();
+    if (!secret) {
+      throw new Error('Variável de ambiente JWT_SECRET não configurada.');
+    }
+    return secret;
   }
 
   public static gerarToken(payload: PayloadToken): string {
@@ -25,8 +29,9 @@ export class JwtUtil {
   }
 
   public static verificarToken(token: string): PayloadToken {
+    const secret = this.getSecret();
     try {
-      return jwt.verify(token, this.getSecret()) as unknown as PayloadToken;
+      return jwt.verify(token, secret) as unknown as PayloadToken;
     } catch {
       throw new AppError('Token inválido ou expirado.', 401);
     }

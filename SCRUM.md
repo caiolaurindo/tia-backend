@@ -15,7 +15,7 @@ Para atualizar uma tarefa, marque a caixa `[x]` quando concluir, altere o status
 
 | Done | ID | Tarefa | Status | Responsável | Branch / PR |
 | :---: | :---: | :--- | :--- | :--- | :--- |
-| [ ] | **T-01** | Exigir `JWT_SECRET` obrigatório em `jwt.util.ts` (remover fallback) | `⚪ A fazer` | `@responsavel` | `fix/jwt-secret` |
+| [x] | **T-01** | Exigir `JWT_SECRET` obrigatório em `jwt.util.ts` (remover fallback) | `🟢 Concluído` | `@caio` | `fix/jwt-secret` |
 | [ ] | **T-02** | Condicionar `synchronize` e `logging` do TypeORM ao `NODE_ENV` em `data-source.ts` | `⚪ A fazer` | `@responsavel` | `chore/typeorm-env` |
 | [ ] | **T-03** | Configurar `helmet`, `cors`, limite de JSON, rota `404` e logs HTTP (`morgan`/`pino-http`) em `app.ts` | `⚪ A fazer` | `@responsavel` | `feat/http-security` |
 | [ ] | **T-04** | Adicionar Rate Limiting (`express-rate-limit`) em `/auth/login`, `/auth/cadastro` e API geral | `⚪ A fazer` | `@responsavel` | `feat/rate-limit` |
