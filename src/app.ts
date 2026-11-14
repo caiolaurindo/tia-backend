@@ -1,4 +1,5 @@
 import express, { Application } from 'express';
+import { corsMiddleware } from './middlewares/cors.middleware';
 import { manipuladorDeErros } from './middlewares/error.middleware';
 import { professorRouter } from './routes/professor.routes';
 import { turmaRouter } from './routes/turma.routes';
@@ -25,6 +26,7 @@ class App {
   }
 
   private configurarMiddlewares(): void {
+    this.app.use(corsMiddleware);
     this.app.use(express.json());
   }
 
