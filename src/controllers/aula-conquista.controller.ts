@@ -14,11 +14,22 @@ export class AulaConquistaController {
     const professorId = req.usuario!.sub;
     const aulaId = req.query.aulaId ? Number(req.query.aulaId) : undefined;
 
-    if (!aulaId || isNaN(aulaId)) {
-      throw new AppError('O parâmetro de consulta aulaId é obrigatório e deve ser um número válido.', 400);
+    if (
+      aulaId === undefined ||
+      !Number.isInteger(aulaId) ||
+      aulaId <= 0
+    ) {
+      throw new AppError(
+        'O parâmetro de consulta aulaId é obrigatório e deve ser um número válido.',
+        400
+      );
     }
 
-    const conquistas = await this.aulaConquistaService.listarPorAula(aulaId, professorId);
+    const conquistas = await this.aulaConquistaService.listarPorAula(
+      aulaId,
+      professorId
+    );
+
     res.json(conquistas);
   };
 

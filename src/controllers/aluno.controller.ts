@@ -7,7 +7,10 @@ export class AlunoController {
 
   listar = async (req: Request, res: Response) => {
     const turmaId = req.query.turmaId ? Number(req.query.turmaId) : undefined;
-    if (turmaId !== undefined && Number.isNaN(turmaId)) {
+    if (
+      turmaId !== undefined &&
+      (!Number.isInteger(turmaId) || turmaId <= 0)
+    ) {
       throw new AppError('turmaId inválido.', 400);
     }
     res.json(await this.alunoService.listarPorProfessor(req.usuario!.sub, turmaId));
