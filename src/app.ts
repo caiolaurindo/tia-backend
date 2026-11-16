@@ -5,6 +5,11 @@ import morgan from 'morgan';
 
 import { corsMiddleware } from './middlewares/cors.middleware';
 import { manipuladorDeErros } from './middlewares/error.middleware';
+import {
+  criarLimitadorGeral,
+  criarLimitadorLogin,
+  criarLimitadorCadastro,
+} from './middlewares/rate-limit.middleware';
 
 import { professorRouter } from './routes/professor.routes';
 import { turmaRouter } from './routes/turma.routes';
@@ -25,20 +30,39 @@ class App {
 
   constructor() {
     this.app = express();
+    this.configurarProxy();
     this.configurarMiddlewares();
     this.configurarRotas();
     this.configurarRotaNaoEncontrada();
     this.configurarTratamentoDeErros();
   }
 
+  /**
+   * Define `trust proxy` apenas quando `TRUST_PROXY` estiver configurada.
+   * Valor numérico = quantidade de proxies na frente da API (ex: `1`); outro texto é repassado
+   * ao Express (ex: `loopback`). Sem a variável, o IP do cliente é o da conexão direta.
+   * Necessário atrás de proxy reverso/load balancer; sem isso o rate limit enxerga o IP do proxy.
+   */
+  private configurarProxy(): void {
+    const proxy = process.env.TRUST_PROXY?.trim();
+    if (!proxy) return;
+
+    this.app.set('trust proxy', /^\d+$/.test(proxy) ? Number(proxy) : proxy);
+  }
+
   private configurarMiddlewares(): void {
     this.app.use(morgan('dev'));
     this.app.use(helmet());
     this.app.use(corsMiddleware);
+    // Depois de helmet/cors para que as respostas 429 também levem os headers de segurança e CORS,
+    // e antes do parser de JSON para barrar o excesso sem processar o body.
+    this.app.use(criarLimitadorGeral());
     this.app.use(express.json({ limit: '100kb' }));
   }
 
   private configurarRotas(): void {
+    this.app.post('/auth/login', criarLimitadorLogin());
+    this.app.post('/auth/cadastro', criarLimitadorCadastro());
     this.app.use('/auth', professorRouter);
     this.app.use('/turmas', turmaRouter);
     this.app.use('/turmas/:turmaId/conquistas', turmaConquistaRouter);

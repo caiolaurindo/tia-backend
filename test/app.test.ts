@@ -1,5 +1,6 @@
 import request from 'supertest';
 import app from '../src/app';
+import { LIMITES } from '../src/middlewares/rate-limit.middleware';
 
 describe('Configurações HTTP da aplicação', () => {
   it('deve adicionar cabeçalhos de segurança com Helmet', async () => {
@@ -29,5 +30,30 @@ describe('Configurações HTTP da aplicação', () => {
       .send(payload);
 
     expect(response.status).toBe(413);
+  });
+});
+
+describe('Rate limiting', () => {
+  it('deve bloquear POST /auth/login após exceder as tentativas com falha', async () => {
+    for (let i = 0; i < LIMITES.login.limit; i++) {
+      const resposta = await request(app).post('/auth/login').send({});
+      expect(resposta.status).not.toBe(429);
+    }
+
+    const bloqueada = await request(app).post('/auth/login').send({});
+
+    expect(bloqueada.status).toBe(429);
+    expect(bloqueada.body).toEqual({ status: 'erro', mensagem: LIMITES.login.mensagem });
+    expect(bloqueada.headers).toHaveProperty('retry-after');
+  });
+
+  it('deve bloquear POST /auth/cadastro após exceder o limite', async () => {
+    for (let i = 0; i < LIMITES.cadastro.limit; i++) {
+      await request(app).post('/auth/cadastro').send({});
+    }
+
+    const bloqueada = await request(app).post('/auth/cadastro').send({});
+
+    expect(bloqueada.status).toBe(429);
   });
 });
