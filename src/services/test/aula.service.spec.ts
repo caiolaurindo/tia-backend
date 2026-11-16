@@ -111,6 +111,31 @@ describe('AulaService (Testes Unitários)', () => {
       expect(aulaRepositorioMock.create).not.toHaveBeenCalled();
       expect(aulaRepositorioMock.save).not.toHaveBeenCalled();
     });
+
+    it('deve criar uma aula com sucesso quando turmaRepositorio for omitido no construtor', async () => {
+      const servicoSemTurmaRepo = new AulaService(aulaRepositorioMock as any);
+      const dto = {
+        nome: 'Shapes and Sizes',
+        assunto: 'Geometria básica',
+        data: '2026-11-01',
+        turmaId: turmaIdMock,
+      };
+
+      aulaRepositorioMock.create.mockReturnValue(aulaMock);
+      aulaRepositorioMock.save.mockResolvedValue(aulaMock);
+
+      const resultado = await servicoSemTurmaRepo.criarParaProfessor(dto, professorIdMock);
+
+      expect(aulaRepositorioMock.create).toHaveBeenCalledWith({
+        nome: dto.nome,
+        assunto: dto.assunto,
+        data: dto.data,
+        turma: { id: dto.turmaId },
+        professor: { id: professorIdMock },
+      });
+      expect(aulaRepositorioMock.save).toHaveBeenCalledWith(aulaMock);
+      expect(resultado).toEqual(aulaMock);
+    });
   });
 
   describe('Listagem e Consulta com Isolamento por Professora', () => {
@@ -220,6 +245,38 @@ describe('AulaService (Testes Unitários)', () => {
         turma: { id: novaTurmaId },
       });
       expect(resultado.turma.id).toBe(novaTurmaId);
+    });
+
+    it('deve lançar AppError 404 se a nova turma informada não existir ou não pertencer à professora', async () => {
+      // STUB: aula existe
+      aulaRepositorioMock.findOne.mockResolvedValue(aulaMock);
+      // STUB: turma pesquisada não encontrada
+      turmaRepositorioMock.findOne.mockResolvedValue(null);
+
+      await expect(
+        aulaService.atualizarParaProfessor(1, { turmaId: 999 }, professorIdMock)
+      ).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'Turma não encontrada ou acesso não autorizado.',
+      });
+
+      // MOCK: garante que update não foi chamado
+      expect(aulaRepositorioMock.update).not.toHaveBeenCalled();
+    });
+
+    it('deve atualizar aula quando turmaRepositorio for omitido no construtor', async () => {
+      const servicoSemTurmaRepo = new AulaService(aulaRepositorioMock as any);
+      const dadosAtualizados = { nome: 'Nova Aula Sem Turma Repo' };
+
+      aulaRepositorioMock.findOne
+        .mockResolvedValueOnce(aulaMock)
+        .mockResolvedValueOnce({ ...aulaMock, ...dadosAtualizados });
+      aulaRepositorioMock.update.mockResolvedValue({ affected: 1 });
+
+      const resultado = await servicoSemTurmaRepo.atualizarParaProfessor(1, dadosAtualizados, professorIdMock);
+
+      expect(aulaRepositorioMock.update).toHaveBeenCalledWith(1, dadosAtualizados);
+      expect(resultado.nome).toBe('Nova Aula Sem Turma Repo');
     });
   });
 

@@ -33,6 +33,32 @@ describe('RegistroService (Testes Unitários)', () => {
     service = new RegistroService(registroRepoMock, alunoRepoMock, aulaRepoMock);
   });
 
+  describe('Listagem Geral e por Professor', () => {
+    it('deve listar registros filtrando pela professora quando professorId for informado', async () => {
+      const registrosSimulados = [{ id: 1, alunoId: alunoIdMock, aulaId: aulaIdMock }];
+      registroRepoMock.find.mockResolvedValue(registrosSimulados);
+
+      const resultado = await service.listarTodos(professorIdMock);
+
+      expect(registroRepoMock.find).toHaveBeenCalledWith({
+        where: { aula: { professor: { id: professorIdMock } } },
+        relations: { aluno: true, aula: true },
+        order: { data: 'DESC' },
+      });
+      expect(resultado).toEqual(registrosSimulados);
+    });
+
+    it('deve listar todos os registros sem filtro quando professorId for undefined', async () => {
+      const registrosSimulados = [{ id: 1 }, { id: 2 }];
+      registroRepoMock.find.mockResolvedValue(registrosSimulados);
+
+      const resultado = await service.listarTodos();
+
+      expect(registroRepoMock.find).toHaveBeenCalledWith();
+      expect(resultado).toEqual(registrosSimulados);
+    });
+  });
+
   describe('Criação de Registros', () => {
     it('deve criar um registro quando aluno e aula pertencerem à mesma turma da professora', async () => {
       alunoRepoMock.findOne.mockResolvedValue({ id: alunoIdMock, turma: { id: turmaIdMock } });
@@ -55,7 +81,37 @@ describe('RegistroService (Testes Unitários)', () => {
         where: { id: aulaIdMock, professor: { id: professorIdMock } },
         relations: { turma: true },
       });
-      expect(registroRepoMock.save).toHaveBeenCalled();
+      expect(registroRepoMock.save).toHaveBeenCalledTimes(1);
+      expect(resultado).toEqual(expect.objectContaining({ alunoId: alunoIdMock, aulaId: aulaIdMock }));
+    });
+
+    it('deve criar registro sem validação de professor caso professorId seja undefined', async () => {
+      const dto = {
+        alunoId: alunoIdMock,
+        aulaId: aulaIdMock,
+        data: new Date('2026-10-26'),
+        participacao: 'Boa',
+      };
+
+      const resultado = await service.criar(dto);
+
+      expect(alunoRepoMock.findOne).not.toHaveBeenCalled();
+      expect(aulaRepoMock.findOne).not.toHaveBeenCalled();
+      expect(registroRepoMock.save).toHaveBeenCalledTimes(1);
+      expect(resultado).toEqual(expect.objectContaining({ alunoId: alunoIdMock, aulaId: aulaIdMock }));
+    });
+
+    it('deve criar registro mesmo sem repositórios opcionais de aluno e aula injetados', async () => {
+      const servicoSemReposAuxiliares = new RegistroService(registroRepoMock);
+      const dto = {
+        alunoId: alunoIdMock,
+        aulaId: aulaIdMock,
+        data: new Date('2026-10-26'),
+      };
+
+      const resultado = await servicoSemReposAuxiliares.criar(dto, professorIdMock);
+
+      expect(registroRepoMock.save).toHaveBeenCalledTimes(1);
       expect(resultado).toEqual(expect.objectContaining({ alunoId: alunoIdMock, aulaId: aulaIdMock }));
     });
 
@@ -122,6 +178,20 @@ describe('RegistroService (Testes Unitários)', () => {
       expect(resultado).toHaveLength(1);
     });
 
+    it('deve consultar registros por aluno sem validar professor quando professorId for undefined', async () => {
+      registroRepoMock.find.mockResolvedValue([{ id: 1, alunoId: alunoIdMock }]);
+
+      const resultado = await service.buscarPorAluno(alunoIdMock);
+
+      expect(alunoRepoMock.findOne).not.toHaveBeenCalled();
+      expect(registroRepoMock.find).toHaveBeenCalledWith({
+        where: { alunoId: alunoIdMock },
+        relations: { aula: true },
+        order: { data: 'DESC' },
+      });
+      expect(resultado).toHaveLength(1);
+    });
+
     it('deve lançar AppError 404 ao consultar registros de aluno de outra professora', async () => {
       alunoRepoMock.findOne.mockResolvedValue(null);
 
@@ -145,6 +215,20 @@ describe('RegistroService (Testes Unitários)', () => {
           aulaId: aulaIdMock,
           aula: { professor: { id: professorIdMock } },
         },
+        relations: { aluno: true },
+        order: { data: 'DESC' },
+      });
+      expect(resultado).toHaveLength(1);
+    });
+
+    it('deve consultar registros por aula sem validar professor quando professorId for undefined', async () => {
+      registroRepoMock.find.mockResolvedValue([{ id: 1, aulaId: aulaIdMock }]);
+
+      const resultado = await service.buscarPorAula(aulaIdMock);
+
+      expect(aulaRepoMock.findOne).not.toHaveBeenCalled();
+      expect(registroRepoMock.find).toHaveBeenCalledWith({
+        where: { aulaId: aulaIdMock },
         relations: { aluno: true },
         order: { data: 'DESC' },
       });
@@ -177,7 +261,20 @@ describe('RegistroService (Testes Unitários)', () => {
       const resultado = await service.atualizar(1, { alunoId: 11, participacao: 'Boa' }, professorIdMock);
 
       expect(alunoRepoMock.findOne).toHaveBeenCalled();
+      expect(registroRepoMock.save).toHaveBeenCalled();
       expect(resultado).toEqual(expect.objectContaining({ alunoId: 11, participacao: 'Boa' }));
+    });
+
+    it('deve atualizar registro sem revalidar vínculos se nem alunoId nem aulaId forem informados', async () => {
+      const registroExistente = { id: 1, alunoId: alunoIdMock, aulaId: aulaIdMock, participacao: 'Regular' };
+      registroRepoMock.findOne.mockResolvedValue(registroExistente);
+
+      const resultado = await service.atualizar(1, { participacao: 'Excelente' }, professorIdMock);
+
+      expect(alunoRepoMock.findOne).not.toHaveBeenCalled();
+      expect(aulaRepoMock.findOne).not.toHaveBeenCalled();
+      expect(registroRepoMock.save).toHaveBeenCalledTimes(1);
+      expect(resultado).toEqual(expect.objectContaining({ participacao: 'Excelente' }));
     });
 
     it('deve remover registro existente da professora', async () => {

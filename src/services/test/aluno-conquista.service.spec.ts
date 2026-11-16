@@ -179,6 +179,36 @@ describe('AlunoConquistaService (Testes Unitários)', () => {
       expect(resultado.status).toBe(StatusConquista.EM_DESENVOLVIMENTO_AVANCADO);
       expect(resultado.dataConquista).toBeNull();
     });
+
+    it('deve atualizar apenas a observação sem alterar status nem dataConquista', async () => {
+      const dataCriacao = new Date('2026-10-01');
+      const registroExistente = {
+        id: 1,
+        alunoId: alunoIdMock,
+        conquistaId: conquistaIdMock,
+        status: StatusConquista.CONQUISTADO,
+        dataConquista: dataCriacao,
+        observacao: 'Observação antiga',
+      } as unknown as AlunoConquista;
+
+      repositorioMock.findOne.mockResolvedValue(registroExistente);
+
+      const resultado = await service.atualizarParaProfessor(
+        1,
+        { observacao: 'Observação atualizada' },
+        professorIdMock
+      );
+
+      expect(repositorioMock.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: StatusConquista.CONQUISTADO,
+          dataConquista: dataCriacao,
+          observacao: 'Observação atualizada',
+        })
+      );
+      expect(resultado.observacao).toBe('Observação atualizada');
+      expect(resultado.status).toBe(StatusConquista.CONQUISTADO);
+    });
   });
 
   describe('Listagem e Remoção', () => {
