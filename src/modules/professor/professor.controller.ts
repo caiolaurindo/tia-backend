@@ -6,6 +6,8 @@ import { validarRequisicao } from '../../common/middlewares/validation.middlewar
 import { criarProfessorSchema, loginProfessorSchema } from './professor.schema';
 import { catchAsync } from '../../common/utils/catch-async';
 import { autenticar } from '../../common/middlewares/auth.middleware';
+import { autorizar } from '../../common/middlewares/rbac.middleware';
+import { Role } from '../../common/enums/role.enum';
 
 const professorRouter = Router();
 const repositorio = AppDataSource.getRepository(Professor);
@@ -30,12 +32,11 @@ professorRouter.post(
 );
 
 professorRouter.get(
-  '/me',
+ '/gerenciamento/painel',
   autenticar,
+  autorizar([Role.COORDENADOR, Role.ADMIN]),
   catchAsync(async (req: Request, res: Response) => {
-    const professor = await professorService.buscarPorId(req.usuario!.sub);
-    const { senhaHash, ...professorSemSenha } = professor;
-    res.json(professorSemSenha);
+    res.json({ message: 'Bem-vindo ao painel de gestão!' });
   })
 );
 

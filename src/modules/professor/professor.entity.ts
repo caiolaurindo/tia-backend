@@ -1,6 +1,6 @@
 import { Entity, Column } from 'typeorm';
 import { EntidadeGenerica } from '../../common/base/base.entity';
-
+import { Role } from '../../common/enums/role.enum';
 
 /**
  * @author moisesaraujo
@@ -16,4 +16,14 @@ export class Professor extends EntidadeGenerica {
 
   @Column({ name: 'senha_hash', type: 'varchar' })
   senhaHash!: string;
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.PROFESSOR,
+  })
+  role!: Role;
+
+  @Column({ type: 'boolean', default: true })
+  ativo!: boolean;
 }

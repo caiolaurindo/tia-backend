@@ -5,6 +5,7 @@
 
 import jwt from 'jsonwebtoken';
 import { AppError } from './app-error';
+import { Role } from '../enums/role.enum';
 
 /**
  * @author moisesaraujo
@@ -13,6 +14,8 @@ import { AppError } from './app-error';
 export interface PayloadToken {
   sub: number; 
   email: string;
+  role: Role;
+  ativo: boolean;
 }
 
 export class JwtUtil {

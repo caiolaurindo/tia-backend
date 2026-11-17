@@ -36,15 +36,21 @@ export class ProfessorService extends ServiceGenerico<Professor> {
       throw new AppError('Credenciais inválidas.', 401);
     }
 
+    if (!professor.ativo) {
+      throw new AppError('Acesso negado. Usuário inativo.', 403);
+    }
+
     const senhaValida = await bcrypt.compare(dados.senha, professor.senhaHash);
     if (!senhaValida) {
       throw new AppError('Credenciais inválidas.', 401);
     }
 
     const token = JwtUtil.gerarToken({
-      sub: professor.id,
-      email: professor.email,
-    });
+  sub: professor.id,
+  email: professor.email,
+  role: professor.role,  
+  ativo: professor.ativo, 
+});
 
     const { senhaHash: _, ...professorSemSenha } = professor;
     return {
