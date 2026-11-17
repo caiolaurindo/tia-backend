@@ -3,6 +3,7 @@ import { professorRouter } from './modules/professor/professor.controller';
 import { manipuladorDeErros } from './common/middlewares/error.middleware';
 import { turmaRouter } from './modules/turma/turma.controller';
 import { registroRouter } from './modules/registro/registro.controller';
+import { apiLimiter, authLimiter } from './common/middlewares/rateLimit.middleware';
 
 /**
  * @author moisesaraujo
@@ -20,6 +21,10 @@ class App {
 
   private configurarMiddlewares(): void {
     this.app.use(express.json());
+    this.app.set('trust proxy', 1);
+    this.app.use('/auth/login', authLimiter);
+    this.app.use('/auth/cadastro', authLimiter);
+    this.app.use('/api', apiLimiter);
   }
 
   private configurarRotas(): void {
