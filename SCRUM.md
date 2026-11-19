@@ -31,7 +31,7 @@ Para atualizar uma tarefa, marque a caixa `[x]` quando concluir, altere o status
 | :---: | :---: | :--- | :--- | :--- | :--- |
 | [ ] | **T-08** | Implementar RBAC: adicionar `role` (`PROFESSOR`, `COORDENADOR`, `ADMIN`) e `ativo` na entidade/JWT + middleware `autorizar` | `⚪ A fazer` | `@responsavel` | `feat/rbac` |
 | [ ] | **T-09** | Corrigir IDOR em `/conquistas` (vincular a `professorId` ou restringir catálogo global a `ADMIN`/`COORDENADOR`) | `⚪ A fazer` | `@responsavel` | `fix/conquista-idor` |
-| [ ] | **T-10** | Adicionar paginação (`page`, `limit`) e filtros com Zod em todas as rotas `GET /` | `⚪ A fazer` | `@responsavel` | `feat/paginacao` |
+| [ ] | **T-10** | Adicionar paginação (`page`, `limit`) e filtros com Zod em todas as rotas `GET /` | `🟡 Em andamento` | `@adriano`, `@responsavel` | `feat/paginacao` |
 | [ ] | **T-11** | Inicializar `AlunoConquista` (`NAO_TRABALHADO`) automaticamente ao matricular aluno ou vincular conquista à turma | `⚪ A fazer` | `@responsavel` | `feat/init-metas-aluno` |
 | [ ] | **T-12** | Permitir `Registro` avulso (sem `aulaId` obrigatório) e conectar `Registro` à atualização de `AlunoConquista` | `⚪ A fazer` | `@responsavel` | `feat/registro-progresso` |
 | [ ] | **T-13** | Criar tabela/log de histórico de evolução das conquistas (sem sobrescrever o passado) | `⚪ A fazer` | `@responsavel` | `feat/historico-conquistas` |
