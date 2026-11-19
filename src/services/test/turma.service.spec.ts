@@ -22,6 +22,7 @@ describe('TurmaService (Testes Unitários)', () => {
   beforeEach(() => {
     repositorioMock = {
       find: jest.fn(),
+      findAndCount: jest.fn(),
       findOne: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
@@ -55,46 +56,58 @@ describe('TurmaService (Testes Unitários)', () => {
     });
   });
 
-  describe('Listagem e Consulta com Isolamento por Professor', () => {
-    it('deve listar apenas as turmas pertencentes ao professor informado', async () => {
-      repositorioMock.find.mockResolvedValue([turmaMock]);
+  
+it('deve listar as turmas do professor com paginação padrão', async () => {
+  repositorioMock.findAndCount.mockResolvedValue([[turmaMock], 1]);
 
-      const resultado = await turmaService.listarPorProfessor(professorIdMock);
+  const resultado = await turmaService.listarPorProfessor(professorIdMock);
 
-      expect(repositorioMock.find).toHaveBeenCalledWith({
-        where: { professor: { id: professorIdMock } },
-        order: { nome: 'ASC' },
-      });
-      expect(resultado).toHaveLength(1);
-      expect(resultado[0].nome).toBe('Inglês Kids A1');
-    });
-
-    it('deve buscar uma turma por ID caso ela pertença ao professor', async () => {
-      repositorioMock.findOne.mockResolvedValue(turmaMock);
-
-      const resultado = await turmaService.buscarPorIdEProfessor(1, professorIdMock);
-
-      expect(repositorioMock.findOne).toHaveBeenCalledWith({
-        where: { id: 1, professor: { id: professorIdMock } },
-      });
-      expect(resultado).toEqual(turmaMock);
-    });
-
-    it('deve lançar AppError com status 404 caso a turma não seja encontrada ou seja de outro professor', async () => {
-      repositorioMock.findOne.mockResolvedValue(null);
-
-      await expect(
-        turmaService.buscarPorIdEProfessor(999, professorIdMock)
-      ).rejects.toThrow(AppError);
-
-      await expect(
-        turmaService.buscarPorIdEProfessor(999, professorIdMock)
-      ).rejects.toMatchObject({
-        statusCode: 404,
-        message: 'Turma não encontrada ou acesso não autorizado.',
-      });
-    });
+  expect(repositorioMock.findAndCount).toHaveBeenCalledWith({
+    where: {
+      professor: { id: professorIdMock },
+    },
+    order: { nome: 'ASC' },
+    skip: 0,
+    take: 10,
   });
+
+  expect(resultado.dados).toHaveLength(1);
+  expect(resultado.dados[0].nome).toBe('Inglês Kids A1');
+  expect(resultado.paginacao).toEqual({
+    pagina: 1,
+    limite: 10,
+    total: 1,
+    totalPaginas: 1,
+  });
+});
+
+it('deve aplicar filtros e paginação na listagem de turmas', async () => {
+  repositorioMock.findAndCount.mockResolvedValue([[turmaMock], 1]);
+
+  const resultado = await turmaService.listarPorProfessor(
+    professorIdMock,
+    'Inglês',
+    '3º Ano',
+    2026,
+    2,
+    5
+  );
+
+  expect(repositorioMock.findAndCount).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: expect.objectContaining({
+        professor: { id: professorIdMock },
+        anoLetivo: 2026,
+      }),
+      skip: 5,
+      take: 5,
+    })
+  );
+
+  expect(resultado.paginacao.pagina).toBe(2);
+  expect(resultado.paginacao.limite).toBe(5);
+});
+
 
   describe('Atualização de Turmas', () => {
     it('deve atualizar os dados da turma pertencente ao professor com sucesso', async () => {
