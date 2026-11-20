@@ -16,9 +16,9 @@ Para atualizar uma tarefa, marque a caixa `[x]` quando concluir, altere o status
 | Done | ID | Tarefa | Status | Responsável | Branch / PR |
 | :---: | :---: | :--- | :--- | :--- | :--- |
 | [x] | **T-01** | Exigir `JWT_SECRET` obrigatório em `jwt.util.ts` (remover fallback) | `🟢 Concluído` | `@caio` | `fix/jwt-secret` |
-| [x] | **T-02** | Condicionar `synchronize` e `logging` do TypeORM ao `NODE_ENV` em `data-source.ts` | `🟣 Em revisão` | `@adriano` | `chore/typeorm-env` |
-| [x] | **T-03** | Configurar `helmet`, `cors`, limite de JSON, rota `404` e logs HTTP (`morgan`/`pino-http`) em `app.ts` | `🟣 Em revisão` | `@adriano` | `feat/http-security` |
-| [ ] | **T-04** | Adicionar Rate Limiting (`express-rate-limit`) em `/auth/login`, `/auth/cadastro` e API geral | `⚪ A fazer` | `@responsavel` | `feat/rate-limit` |
+| [x] | **T-02** | Condicionar `synchronize` e `logging` do TypeORM ao `NODE_ENV` em `data-source.ts` | `🟢 Concluído` | `@adriano` | `PR #15` |
+| [x] | **T-03** | Configurar `helmet`, `cors`, limite de JSON, rota `404` e logs HTTP (`morgan`/`pino-http`) em `app.ts` | `🟢 Concluído` | `@adriano` | `PR #15` |
+| [x] | **T-04** | Adicionar Rate Limiting (`express-rate-limit`) em `/auth/login`, `/auth/cadastro` e API geral | `🟢 Concluído` | `@yasmin` | `PR #16` |
 | [x] | **T-05** | Expandir `validarRequisicao` (Zod) para validar `params`, `query` e `body.strict()` | `🟢 Concluído` | `@caio` | `feat/zod-params-query` |
 | [x] | **T-06** | Padronizar schemas Zod (senha `max(72)`, formato único de datas e `dataNascimento` não futura) | `🟢 Concluído` | `@caio` | `fix/zod-schemas` |
 | [ ] | **T-07** | Tratar `QueryFailedError` (MySQL) e `MulterError` no `error.middleware.ts` | `⚪ A fazer` | `@responsavel` | `feat/error-handlers` |
