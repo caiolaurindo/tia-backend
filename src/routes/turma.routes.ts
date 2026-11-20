@@ -7,6 +7,7 @@ import { autenticar } from '../middlewares/auth.middleware';
 import { validarRequisicao } from '../middlewares/validation.middleware';
 import { criarTurmaSchema, atualizarTurmaSchema } from '../models/turma.schema';
 import { catchAsync } from '../utils/catch-async';
+import { listarTurmaQuerySchema } from '../models/turma-listagem.schema';
 
 const turmaRouter = Router();
 const repositorio = AppDataSource.getRepository(Turma);
@@ -15,7 +16,11 @@ const turmaController = new TurmaController(turmaService);
 
 turmaRouter.use(autenticar);
 
-turmaRouter.get('/', catchAsync(turmaController.listar));
+turmaRouter.get(
+  '/',
+  validarRequisicao(listarTurmaQuerySchema, 'query'),
+  catchAsync(turmaController.listar)
+);
 turmaRouter.get('/:id', catchAsync(turmaController.buscarPorId));
 turmaRouter.post('/', validarRequisicao(criarTurmaSchema), catchAsync(turmaController.criar));
 turmaRouter.put('/:id', validarRequisicao(atualizarTurmaSchema), catchAsync(turmaController.atualizar));

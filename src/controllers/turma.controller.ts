@@ -4,10 +4,28 @@ import { TurmaService } from '../services/turma.service';
 export class TurmaController {
   constructor(private readonly turmaService: TurmaService) {}
 
-  listar = async (req: Request, res: Response) => {
-    const turmas = await this.turmaService.listarPorProfessor(req.usuario!.sub);
-    res.json(turmas);
-  };
+  
+listar = async (req: Request, res: Response) => {
+  const {
+    nome,
+    serie,
+    anoLetivo,
+    page,
+    limit,
+  } = res.locals.validatedQuery;
+
+  const turmas = await this.turmaService.listarPorProfessor(
+    req.usuario!.sub,
+    nome,
+    serie,
+    anoLetivo,
+    page,
+    limit
+  );
+
+  res.json(turmas);
+};
+
 
   buscarPorId = async (req: Request, res: Response) => {
     const turma = await this.turmaService.buscarPorIdEProfessor(

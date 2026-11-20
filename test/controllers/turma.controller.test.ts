@@ -25,27 +25,94 @@ describe('TurmaController', () => {
     controller = new TurmaController(service);
   });
 
-  describe('listar', () => {
-    it('deve listar as turmas do professor autenticado', async () => {
-      const turmas = [
-        { id: 1, nome: 'Turma A' },
-        { id: 2, nome: 'Turma B' },
-      ];
+  
+describe('listar', () => {
+  it('deve listar as turmas com paginação padrão', async () => {
+    const resultado = {
+      dados: [{ id: 1, nome: 'Turma A' }],
+      paginacao: {
+        pagina: 1,
+        limite: 10,
+        total: 1,
+        totalPaginas: 1,
+      },
+    };
 
-      const req = {
-        usuario: { sub: professorId },
-      } as any;
+    const req = {
+      usuario: { sub: professorId },
+    } as any;
 
-      const res = mockResponse();
+    const res = {
+      ...mockResponse(),
+      locals: {
+        validatedQuery: {
+          page: 1,
+          limit: 10,
+        },
+      },
+    };
 
-      service.listarPorProfessor.mockResolvedValue(turmas as any);
+    service.listarPorProfessor.mockResolvedValue(resultado as any);
 
-      await controller.listar(req, res as any);
+    await controller.listar(req, res as any);
 
-      expect(service.listarPorProfessor).toHaveBeenCalledWith(professorId);
-      expect(res.json).toHaveBeenCalledWith(turmas);
-    });
+    expect(service.listarPorProfessor).toHaveBeenCalledWith(
+      professorId,
+      undefined,
+      undefined,
+      undefined,
+      1,
+      10
+    );
+
+    expect(res.json).toHaveBeenCalledWith(resultado);
   });
+
+  it('deve listar as turmas aplicando filtros e paginação', async () => {
+    const resultado = {
+      dados: [{ id: 2, nome: 'Inglês Kids A1' }],
+      paginacao: {
+        pagina: 2,
+        limite: 5,
+        total: 6,
+        totalPaginas: 2,
+      },
+    };
+
+    const req = {
+      usuario: { sub: professorId },
+    } as any;
+
+    const res = {
+      ...mockResponse(),
+      locals: {
+        validatedQuery: {
+          nome: 'Inglês',
+          serie: '3º Ano',
+          anoLetivo: 2026,
+          page: 2,
+          limit: 5,
+        },
+      },
+    };
+
+    service.listarPorProfessor.mockResolvedValue(resultado as any);
+
+    await controller.listar(req, res as any);
+
+    expect(service.listarPorProfessor).toHaveBeenCalledWith(
+      professorId,
+      'Inglês',
+      '3º Ano',
+      2026,
+      2,
+      5
+    );
+
+    expect(res.json).toHaveBeenCalledWith(resultado);
+  });
+});
+
 
   describe('buscarPorId', () => {
     it('deve buscar uma turma pelo ID e professor autenticado', async () => {

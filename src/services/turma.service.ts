@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Turma } from '../models/turma.entity';
 import { ServiceGenerico } from './base.service';
 import { CriarTurmaDTO, AtualizarTurmaDTO } from '../models/turma.schema';
@@ -9,12 +9,37 @@ export class TurmaService extends ServiceGenerico<Turma> {
     super(repositorio);
   }
 
-  async listarPorProfessor(professorId: number): Promise<Turma[]> {
-    return this.repositorio.find({
-      where: { professor: { id: professorId } },
-      order: { nome: 'ASC' },
-    });
-  }
+async listarPorProfessor(
+  professorId: number,
+  nome?: string,
+  serie?: string,
+  anoLetivo?: number,
+  page: number = 1,
+  limit: number = 10
+) {
+  const [dados, total] = await this.repositorio.findAndCount({
+    where: {
+      professor: { id: professorId },
+      ...(nome && { nome: ILike(`%${nome}%`) }),
+      ...(serie && { serie: ILike(`%${serie}%`) }),
+      ...(anoLetivo !== undefined && { anoLetivo }),
+    },
+    order: { nome: 'ASC' },
+    skip: (page - 1) * limit,
+    take: limit,
+  });
+
+  return {
+    dados,
+    paginacao: {
+      pagina: page,
+      limite: limit,
+      total,
+      totalPaginas: Math.ceil(total / limit),
+    },
+  };
+}
+
 
   async buscarPorIdEProfessor(id: number, professorId: number): Promise<Turma> {
     const turma = await this.repositorio.findOne({
