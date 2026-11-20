@@ -30,6 +30,7 @@ class App {
 
   constructor() {
     this.app = express();
+    this.app.set('etag', false);
     this.configurarProxy();
     this.configurarMiddlewares();
     this.configurarRotas();

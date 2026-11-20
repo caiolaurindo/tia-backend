@@ -8,6 +8,7 @@ describe('Configurações HTTP da aplicação', () => {
 
     expect(response.headers['x-content-type-options']).toBe('nosniff');
     expect(response.headers['x-frame-options']).toBeDefined();
+    expect(response.headers['etag']).toBeUndefined();
   });
 
   it('deve retornar 404 para uma rota inexistente', async () => {
