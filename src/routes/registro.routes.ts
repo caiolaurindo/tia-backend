@@ -7,6 +7,7 @@ import { RegistroService } from '../services/registro.service';
 import { RegistroController } from '../controllers/registro.controller';
 import { validarRequisicao } from '../middlewares/validation.middleware';
 import { createRegistroSchema, updateRegistroSchema } from '../models/registro.schema';
+import { alunoIdParamSchema, aulaIdParamSchema, idParamSchema } from '../models/common.schema';
 import { catchAsync } from '../utils/catch-async';
 import { autenticar } from '../middlewares/auth.middleware';
 
@@ -21,10 +22,10 @@ registroRouter.use(autenticar);
 
 registroRouter.post('/', validarRequisicao(createRegistroSchema), catchAsync(registroController.criar));
 registroRouter.get('/', catchAsync(registroController.listar));
-registroRouter.get('/aluno/:aluno_id', catchAsync(registroController.buscarPorAluno));
-registroRouter.get('/aula/:aula_id', catchAsync(registroController.buscarPorAula));
-registroRouter.get('/:id', catchAsync(registroController.buscarPorId));
-registroRouter.put('/:id', validarRequisicao(updateRegistroSchema), catchAsync(registroController.atualizar));
-registroRouter.delete('/:id', catchAsync(registroController.remover));
+registroRouter.get('/aluno/:aluno_id', validarRequisicao({ params: alunoIdParamSchema }), catchAsync(registroController.buscarPorAluno));
+registroRouter.get('/aula/:aula_id', validarRequisicao({ params: aulaIdParamSchema }), catchAsync(registroController.buscarPorAula));
+registroRouter.get('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(registroController.buscarPorId));
+registroRouter.put('/:id', validarRequisicao({ params: idParamSchema, body: updateRegistroSchema }), catchAsync(registroController.atualizar));
+registroRouter.delete('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(registroController.remover));
 
 export { registroRouter };

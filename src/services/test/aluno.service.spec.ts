@@ -42,7 +42,7 @@ describe('AlunoService (Testes Unitários)', () => {
     it('deve criar um aluno validando a posse da turma pela professora', async () => {
       const dto = {
         nome: 'Lucas Pereira',
-        dataNascimento: new Date('2018-05-10'),
+        dataNascimento: '2018-05-10',
         observacoes: 'Participativo',
         turmaId: turmaIdMock,
       };
@@ -71,7 +71,7 @@ describe('AlunoService (Testes Unitários)', () => {
 
       await expect(
         alunoService.criarParaProfessor(
-          { nome: 'Lucas', dataNascimento: new Date(), turmaId: 999 },
+          { nome: 'Lucas', dataNascimento: '2018-05-10', turmaId: 999 },
           professorIdMock
         )
       ).rejects.toMatchObject({

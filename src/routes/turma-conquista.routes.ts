@@ -8,6 +8,7 @@ import { TurmaConquistaController } from '../controllers/turma-conquista.control
 import { autenticar } from '../middlewares/auth.middleware';
 import { validarRequisicao } from '../middlewares/validation.middleware';
 import { vincularConquistaSchema } from '../models/turma-conquista.schema';
+import { turmaIdParamSchema, turmaConquistaParamsSchema } from '../models/common.schema';
 import { catchAsync } from '../utils/catch-async';
 
 const turmaConquistaRouter = Router({ mergeParams: true });
@@ -21,8 +22,8 @@ const turmaConquistaController = new TurmaConquistaController(turmaConquistaServ
 
 turmaConquistaRouter.use(autenticar);
 
-turmaConquistaRouter.get('/', catchAsync(turmaConquistaController.listar));
-turmaConquistaRouter.post('/', validarRequisicao(vincularConquistaSchema), catchAsync(turmaConquistaController.vincular));
-turmaConquistaRouter.delete('/:conquistaId', catchAsync(turmaConquistaController.desvincular));
+turmaConquistaRouter.get('/', validarRequisicao({ params: turmaIdParamSchema }), catchAsync(turmaConquistaController.listar));
+turmaConquistaRouter.post('/', validarRequisicao({ params: turmaIdParamSchema, body: vincularConquistaSchema }), catchAsync(turmaConquistaController.vincular));
+turmaConquistaRouter.delete('/:conquistaId', validarRequisicao({ params: turmaConquistaParamsSchema }), catchAsync(turmaConquistaController.desvincular));
 
 export { turmaConquistaRouter };

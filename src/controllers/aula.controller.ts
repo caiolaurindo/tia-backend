@@ -13,9 +13,13 @@ export class AulaController {
   listar = async (req: Request, res: Response) => {
     const professorId = req.usuario!.sub;
 
-    const turmaId = req.query.turmaId
-      ? Number(req.query.turmaId)
-      : undefined;
+    const turmaIdValidado = res.locals?.validatedQuery?.turmaId as number | undefined;
+    const turmaId =
+      turmaIdValidado !== undefined
+        ? turmaIdValidado
+        : req.query.turmaId
+          ? Number(req.query.turmaId)
+          : undefined;
 
     if (turmaId !== undefined && (!Number.isInteger(turmaId) || turmaId <= 0)) {
       throw new AppError('turmaId inválido.', 400);

@@ -7,7 +7,8 @@ import { TurmaService } from '../services/turma.service';
 import { AlunoController } from '../controllers/aluno.controller';
 import { autenticar } from '../middlewares/auth.middleware';
 import { validarRequisicao } from '../middlewares/validation.middleware';
-import { criarAlunoSchema, atualizarAlunoSchema } from '../models/aluno.schema';
+import { criarAlunoSchema, atualizarAlunoSchema, listarAlunoQuerySchema } from '../models/aluno.schema';
+import { idParamSchema } from '../models/common.schema';
 import { catchAsync } from '../utils/catch-async';
 
 const alunoRouter = Router();
@@ -17,10 +18,10 @@ const alunoController = new AlunoController(alunoService);
 
 alunoRouter.use(autenticar);
 
-alunoRouter.get('/', catchAsync(alunoController.listar));
-alunoRouter.get('/:id', catchAsync(alunoController.buscarPorId));
+alunoRouter.get('/', validarRequisicao({ query: listarAlunoQuerySchema }), catchAsync(alunoController.listar));
+alunoRouter.get('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(alunoController.buscarPorId));
 alunoRouter.post('/', validarRequisicao(criarAlunoSchema), catchAsync(alunoController.criar));
-alunoRouter.put('/:id', validarRequisicao(atualizarAlunoSchema), catchAsync(alunoController.atualizar));
-alunoRouter.delete('/:id', catchAsync(alunoController.remover));
+alunoRouter.put('/:id', validarRequisicao({ params: idParamSchema, body: atualizarAlunoSchema }), catchAsync(alunoController.atualizar));
+alunoRouter.delete('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(alunoController.remover));
 
 export { alunoRouter };

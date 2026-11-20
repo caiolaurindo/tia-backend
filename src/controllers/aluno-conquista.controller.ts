@@ -6,10 +6,12 @@ export class AlunoConquistaController {
   constructor(private readonly alunoConquistaService: AlunoConquistaService) {}
 
   listar = async (req: Request, res: Response) => {
-    const alunoId = Number(req.query.alunoId);
+    const alunoIdValidado = res.locals?.validatedQuery?.alunoId as number | undefined;
+    const alunoId =
+      alunoIdValidado !== undefined ? alunoIdValidado : Number(req.query.alunoId);
 
     if (
-      !req.query.alunoId ||
+      (alunoIdValidado === undefined && !req.query.alunoId) ||
       !Number.isInteger(alunoId) ||
       alunoId <= 0
     ) {

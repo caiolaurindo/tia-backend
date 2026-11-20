@@ -6,7 +6,13 @@ export class AlunoController {
   constructor(private readonly alunoService: AlunoService) {}
 
   listar = async (req: Request, res: Response) => {
-    const turmaId = req.query.turmaId ? Number(req.query.turmaId) : undefined;
+    const turmaIdValidado = res.locals?.validatedQuery?.turmaId as number | undefined;
+    const turmaId =
+      turmaIdValidado !== undefined
+        ? turmaIdValidado
+        : req.query.turmaId
+          ? Number(req.query.turmaId)
+          : undefined;
     if (
       turmaId !== undefined &&
       (!Number.isInteger(turmaId) || turmaId <= 0)

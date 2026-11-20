@@ -12,7 +12,13 @@ export class AulaConquistaController {
 
   listar = async (req: Request, res: Response) => {
     const professorId = req.usuario!.sub;
-    const aulaId = req.query.aulaId ? Number(req.query.aulaId) : undefined;
+    const aulaIdValidado = res.locals?.validatedQuery?.aulaId as number | undefined;
+    const aulaId =
+      aulaIdValidado !== undefined
+        ? aulaIdValidado
+        : req.query.aulaId
+          ? Number(req.query.aulaId)
+          : undefined;
 
     if (
       aulaId === undefined ||

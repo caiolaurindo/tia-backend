@@ -7,7 +7,12 @@ import { PayloadToken } from './jwt.util';
 declare global {
   namespace Express {
     interface Request {
-      usuario?: PayloadToken; 
+      usuario?: PayloadToken;
+    }
+
+    interface Locals {
+      validatedQuery?: any;
+      validatedParams?: any;
     }
   }
 }

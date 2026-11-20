@@ -8,7 +8,7 @@ export class Aluno extends EntidadeGenerica {
   nome!: string;
 
   @Column({ name: 'data_nascimento', type: 'date' })
-  dataNascimento!: Date;
+  dataNascimento!: Date | string;
 
   @Column({ type: 'text', nullable: true })
   observacoes?: string;

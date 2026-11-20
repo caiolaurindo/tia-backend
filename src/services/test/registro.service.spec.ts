@@ -67,7 +67,7 @@ describe('RegistroService (Testes Unitários)', () => {
       const dto = {
         alunoId: alunoIdMock,
         aulaId: aulaIdMock,
-        data: new Date('2026-10-26'),
+        data: '2026-10-26',
         participacao: 'Excelente',
       };
 
@@ -89,7 +89,7 @@ describe('RegistroService (Testes Unitários)', () => {
       const dto = {
         alunoId: alunoIdMock,
         aulaId: aulaIdMock,
-        data: new Date('2026-10-26'),
+        data: '2026-10-26',
         participacao: 'Boa',
       };
 
@@ -106,7 +106,7 @@ describe('RegistroService (Testes Unitários)', () => {
       const dto = {
         alunoId: alunoIdMock,
         aulaId: aulaIdMock,
-        data: new Date('2026-10-26'),
+        data: '2026-10-26',
       };
 
       const resultado = await servicoSemReposAuxiliares.criar(dto, professorIdMock);
@@ -119,7 +119,7 @@ describe('RegistroService (Testes Unitários)', () => {
       alunoRepoMock.findOne.mockResolvedValue(null);
 
       await expect(
-        service.criar({ alunoId: 999, aulaId: aulaIdMock, data: new Date() }, professorIdMock)
+        service.criar({ alunoId: 999, aulaId: aulaIdMock, data: '2026-10-26' }, professorIdMock)
       ).rejects.toMatchObject({
         statusCode: 404,
         message: 'Aluno não encontrado ou acesso não autorizado.',
@@ -133,7 +133,7 @@ describe('RegistroService (Testes Unitários)', () => {
       aulaRepoMock.findOne.mockResolvedValue(null);
 
       await expect(
-        service.criar({ alunoId: alunoIdMock, aulaId: 999, data: new Date() }, professorIdMock)
+        service.criar({ alunoId: alunoIdMock, aulaId: 999, data: '2026-10-26' }, professorIdMock)
       ).rejects.toMatchObject({
         statusCode: 404,
         message: 'Aula não encontrada ou acesso não autorizado.',
@@ -147,7 +147,7 @@ describe('RegistroService (Testes Unitários)', () => {
       aulaRepoMock.findOne.mockResolvedValue({ id: aulaIdMock, turma: { id: 6 } });
 
       await expect(
-        service.criar({ alunoId: alunoIdMock, aulaId: aulaIdMock, data: new Date() }, professorIdMock)
+        service.criar({ alunoId: alunoIdMock, aulaId: aulaIdMock, data: '2026-10-26' }, professorIdMock)
       ).rejects.toMatchObject({
         statusCode: 400,
         message: 'O aluno e a aula informados pertencem a turmas diferentes.',

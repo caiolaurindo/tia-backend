@@ -10,7 +10,9 @@ import { validarRequisicao } from '../middlewares/validation.middleware';
 import {
   criarAulaConquistaSchema,
   atualizarAulaConquistaSchema,
+  listarAulaConquistaQuerySchema,
 } from '../models/aula-conquista.schema';
+import { idParamSchema } from '../models/common.schema';
 import { catchAsync } from '../utils/catch-async';
 
 const aulaConquistaRouter = Router();
@@ -28,10 +30,10 @@ const aulaConquistaController = new AulaConquistaController(aulaConquistaService
 
 aulaConquistaRouter.use(autenticar);
 
-aulaConquistaRouter.get('/', catchAsync(aulaConquistaController.listar));
-aulaConquistaRouter.get('/:id', catchAsync(aulaConquistaController.buscarPorId));
+aulaConquistaRouter.get('/', validarRequisicao({ query: listarAulaConquistaQuerySchema }), catchAsync(aulaConquistaController.listar));
+aulaConquistaRouter.get('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(aulaConquistaController.buscarPorId));
 aulaConquistaRouter.post('/', validarRequisicao(criarAulaConquistaSchema), catchAsync(aulaConquistaController.vincular));
-aulaConquistaRouter.put('/:id', validarRequisicao(atualizarAulaConquistaSchema), catchAsync(aulaConquistaController.atualizar));
-aulaConquistaRouter.delete('/:id', catchAsync(aulaConquistaController.remover));
+aulaConquistaRouter.put('/:id', validarRequisicao({ params: idParamSchema, body: atualizarAulaConquistaSchema }), catchAsync(aulaConquistaController.atualizar));
+aulaConquistaRouter.delete('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(aulaConquistaController.remover));
 
 export { aulaConquistaRouter };
