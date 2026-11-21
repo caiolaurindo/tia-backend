@@ -8,6 +8,10 @@ export class ConquistaController {
     res.json(await this.conquistaService.listarTodos());
   };
 
+  progresso = async (req: Request, res: Response) => {
+    res.json(await this.conquistaService.progressoPorTurma(req.usuario!.sub));
+  };
+
   buscarPorId = async (req: Request, res: Response) => {
     res.json(await this.conquistaService.buscarPorId(Number(req.params.id)));
   };
