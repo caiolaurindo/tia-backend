@@ -21,6 +21,7 @@ import {
   atualizarTurmaSchema,
 } from '../../src/models/turma.schema';
 import { criarConquistaSchema } from '../../src/models/conquista.schema';
+import { CategoriaConquista } from '../../src/models/conquista.entity';
 import { vincularConquistaSchema } from '../../src/models/turma-conquista.schema';
 import {
   criarAulaConquistaSchema,
@@ -259,7 +260,13 @@ describe('Padronização de Schemas Zod (T-05 e T-06)', () => {
       ).toBe(false);
 
       expect(atualizarTurmaSchema.safeParse({ nome: 'B', extra: 1 }).success).toBe(false);
-      expect(criarConquistaSchema.safeParse({ nome: 'Ler', extra: 1 }).success).toBe(false);
+      expect(
+        criarConquistaSchema.safeParse({
+          nome: 'Ler',
+          categoria: CategoriaConquista.READING,
+          extra: 1,
+        }).success
+      ).toBe(false);
       expect(vincularConquistaSchema.safeParse({ conquistaId: 1, extra: 1 }).success).toBe(false);
       expect(
         criarAulaConquistaSchema.safeParse({ aulaId: 1, conquistaId: 2, extra: 1 }).success

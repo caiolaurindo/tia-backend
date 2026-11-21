@@ -2,7 +2,7 @@ import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { AulaConquistaService } from '../aula-conquista.service';
 import { AulaConquista } from '../../models/aula-conquista.entity';
 import { Aula } from '../../models/aula.entity';
-import { Conquista } from '../../models/conquista.entity';
+import { Conquista, CategoriaConquista } from '../../models/conquista.entity';
 import { AppError } from '../../utils/app-error';
 
 /**
@@ -35,6 +35,8 @@ describe('AulaConquistaService (Testes Unitários)', () => {
     id: conquistaIdMock,
     nome: 'Identificar animais em inglês',
     descricao: 'Capacidade de apontar e dizer o nome de animais domésticos',
+    categoria: CategoriaConquista.VOCABULARY,
+    ativa: true,
     criadoEm: new Date(),
     atualizadoEm: new Date(),
   };

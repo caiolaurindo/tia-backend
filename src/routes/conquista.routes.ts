@@ -6,6 +6,7 @@ import { ConquistaController } from '../controllers/conquista.controller';
 import { autenticar } from '../middlewares/auth.middleware';
 import { validarRequisicao } from '../middlewares/validation.middleware';
 import { criarConquistaSchema, atualizarConquistaSchema } from '../models/conquista.schema';
+import { idParamSchema } from '../models/common.schema';
 import { catchAsync } from '../utils/catch-async';
 
 const conquistaRouter = Router();
@@ -17,9 +18,9 @@ conquistaRouter.use(autenticar);
 conquistaRouter.get('/', catchAsync(conquistaController.listar));
 // Precisa vir antes de '/:id', senão "progresso" seria lido como um id.
 conquistaRouter.get('/progresso', catchAsync(conquistaController.progresso));
-conquistaRouter.get('/:id', catchAsync(conquistaController.buscarPorId));
+conquistaRouter.get('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(conquistaController.buscarPorId));
 conquistaRouter.post('/', validarRequisicao(criarConquistaSchema), catchAsync(conquistaController.criar));
-conquistaRouter.put('/:id', validarRequisicao(atualizarConquistaSchema), catchAsync(conquistaController.atualizar));
-conquistaRouter.delete('/:id', catchAsync(conquistaController.remover));
+conquistaRouter.put('/:id', validarRequisicao({ params: idParamSchema, body: atualizarConquistaSchema }), catchAsync(conquistaController.atualizar));
+conquistaRouter.delete('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(conquistaController.remover));
 
 export { conquistaRouter };
