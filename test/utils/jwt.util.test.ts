@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { JwtUtil, PayloadToken } from '../../src/utils/jwt.util';
 import { AppError } from '../../src/utils/app-error';
+import { RoleUsuario } from '../../src/models/professor.entity';
 
 function capturarErro(fn: () => unknown): unknown {
   try {
@@ -14,7 +15,12 @@ function capturarErro(fn: () => unknown): unknown {
 describe('JwtUtil', () => {
   const ENV_ORIGINAL = { ...process.env };
   const SEGREDO = 'segredo-de-teste';
-  const payload: PayloadToken = { sub: 1, email: 'professor@teste.com' };
+  const payload: PayloadToken = {
+    sub: 1,
+    email: 'professor@teste.com',
+    role: RoleUsuario.PROFESSOR,
+    ativo: true,
+  };
 
   beforeEach(() => {
     process.env.JWT_SECRET = SEGREDO;
@@ -35,6 +41,8 @@ describe('JwtUtil', () => {
       const decodificado = jwt.verify(token, SEGREDO) as jwt.JwtPayload;
       expect(decodificado.sub).toBe(payload.sub);
       expect(decodificado.email).toBe(payload.email);
+      expect(decodificado.role).toBe(payload.role);
+      expect(decodificado.ativo).toBe(payload.ativo);
     });
 
     it('deve usar expiração de 1 dia quando JWT_EXPIRATION não está definida', () => {

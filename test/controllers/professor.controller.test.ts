@@ -121,5 +121,28 @@ describe('ProfessorController', () => {
 
       expect(resposta).not.toHaveProperty('senhaHash');
     });
+
+    it('deve lançar AppError 403 quando o professor autenticado estiver inativo', async () => {
+      const professor = {
+        id: professorId,
+        nome: 'Professor inativo',
+        ativo: false,
+        senhaHash: 'hash-senha',
+      };
+
+      const req = {
+        usuario: { sub: professorId },
+      } as any;
+
+      const res = mockResponse();
+
+      service.buscarPorId.mockResolvedValue(professor as any);
+
+      await expect(controller.me(req, res as any)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'Usuário inativo. Acesso negado.',
+      });
+      expect(res.json).not.toHaveBeenCalled();
+    });
   });
 });

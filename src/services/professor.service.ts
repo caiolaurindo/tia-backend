@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Professor } from '../models/professor.entity';
+import { Professor, RoleUsuario } from '../models/professor.entity';
 import { ServiceGenerico } from './base.service';
 import { CriarProfessorDTO, LoginProfessorDTO } from '../models/professor.schema';
 import { AppError } from '../utils/app-error';
@@ -24,6 +24,8 @@ export class ProfessorService extends ServiceGenerico<Professor> {
       nome: dados.nome,
       email: dados.email,
       senhaHash,
+      role: RoleUsuario.PROFESSOR,
+      ativo: true,
     });
 
     const { senhaHash: _, ...professorSemSenha } = professor;
@@ -41,9 +43,15 @@ export class ProfessorService extends ServiceGenerico<Professor> {
       throw new AppError('Credenciais inválidas.', 401);
     }
 
+    if (!professor.ativo) {
+      throw new AppError('Usuário inativo. Acesso bloqueado.', 403);
+    }
+
     const token = JwtUtil.gerarToken({
       sub: professor.id,
       email: professor.email,
+      role: professor.role,
+      ativo: professor.ativo,
     });
 
     const { senhaHash: _, ...professorSemSenha } = professor;

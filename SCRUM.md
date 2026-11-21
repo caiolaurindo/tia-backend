@@ -21,7 +21,7 @@ Para atualizar uma tarefa, marque a caixa `[x]` quando concluir, altere o status
 | [x] | **T-04** | Adicionar Rate Limiting (`express-rate-limit`) em `/auth/login`, `/auth/cadastro` e API geral | `🟢 Concluído` | `@yasmin` | `PR #16` |
 | [x] | **T-05** | Expandir `validarRequisicao` (Zod) para validar `params`, `query` e `body.strict()` | `🟢 Concluído` | `@caio` | `feat/zod-params-query` |
 | [x] | **T-06** | Padronizar schemas Zod (senha `max(72)`, formato único de datas e `dataNascimento` não futura) | `🟢 Concluído` | `@caio` | `fix/zod-schemas` |
-| [ ] | **T-07** | Tratar `QueryFailedError` (MySQL) e `MulterError` no `error.middleware.ts` | `⚪ A fazer` | `@responsavel` | `feat/error-handlers` |
+| [x] | **T-07** | Tratar `QueryFailedError` (MySQL) e `MulterError` no `error.middleware.ts` | `🟢 Concluído` | `@caio` | `feat/error-handlers` |
 
 ---
 
@@ -29,7 +29,7 @@ Para atualizar uma tarefa, marque a caixa `[x]` quando concluir, altere o status
 
 | Done | ID | Tarefa | Status | Responsável | Branch / PR |
 | :---: | :---: | :--- | :--- | :--- | :--- |
-| [ ] | **T-08** | Implementar RBAC: adicionar `role` (`PROFESSOR`, `COORDENADOR`, `ADMIN`) e `ativo` na entidade/JWT + middleware `autorizar` | `⚪ A fazer` | `@responsavel` | `feat/rbac` |
+| [x] | **T-08** | Implementar RBAC: adicionar `role` (`PROFESSOR`, `ADMIN`) e `ativo` na entidade/JWT + middleware `autorizar` | `🟢 Concluído` | `@caio` | `feat/rbac` |
 | [ ] | **T-09** | Corrigir IDOR em `/conquistas` (vincular a `professorId` ou restringir catálogo global a `ADMIN`/`COORDENADOR`) | `⚪ A fazer` | `@responsavel` | `fix/conquista-idor` |
 | [ ] | **T-10** | Adicionar paginação (`page`, `limit`) e filtros com Zod em todas as rotas `GET /` | `🟡 Em andamento` | `@adriano`, `@responsavel` | `feat/paginacao` |
 | [ ] | **T-11** | Inicializar `AlunoConquista` (`NAO_TRABALHADO`) automaticamente ao matricular aluno ou vincular conquista à turma | `⚪ A fazer` | `@responsavel` | `feat/init-metas-aluno` |

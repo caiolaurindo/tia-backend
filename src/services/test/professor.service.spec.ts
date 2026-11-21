@@ -1,8 +1,8 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { Repository } from 'typeorm/repository/Repository';
 import { AppError } from '../../utils/app-error';
 import { JwtUtil } from '../../utils/jwt.util';
-import type { Professor } from '../../models/professor.entity';
+import { RoleUsuario, type Professor } from '../../models/professor.entity';
 import type { ProfessorService as ProfessorServiceType } from '../professor.service';
 
 jest.mock('bcrypt', () => ({
@@ -25,6 +25,8 @@ describe('ProfessorService (Testes Unitários)', () => {
     nome: 'Maria Silva',
     email: 'maria@email.com',
     senhaHash: 'senha-hash',
+    role: RoleUsuario.PROFESSOR,
+    ativo: true,
     criadoEm: new Date(),
     atualizadoEm: new Date(),
   };
@@ -39,8 +41,12 @@ describe('ProfessorService (Testes Unitários)', () => {
     professorService = new ProfessorService(repositorioMock);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('Cadastro de Professor', () => {
-    it('deve cadastrar um professor com a senha criptografada', async () => {
+    it('deve cadastrar um professor com a senha criptografada, role PROFESSOR e ativo true', async () => {
       const dados = {
         nome: 'Maria Silva',
         email: 'maria@email.com',
@@ -64,12 +70,16 @@ describe('ProfessorService (Testes Unitários)', () => {
         nome: dados.nome,
         email: dados.email,
         senhaHash: professorMock.senhaHash,
+        role: RoleUsuario.PROFESSOR,
+        ativo: true,
       });
       expect(repositorioMock.save).toHaveBeenCalledWith(professorMock);
       expect(resultado).toEqual({
         id: professorMock.id,
         nome: professorMock.nome,
         email: professorMock.email,
+        role: professorMock.role,
+        ativo: professorMock.ativo,
         criadoEm: professorMock.criadoEm,
         atualizadoEm: professorMock.atualizadoEm,
       });
@@ -119,18 +129,35 @@ describe('ProfessorService (Testes Unitários)', () => {
       expect(gerarTokenMock).toHaveBeenCalledWith({
         sub: professorMock.id,
         email: professorMock.email,
+        role: professorMock.role,
+        ativo: professorMock.ativo,
       });
       expect(resultado).toEqual({
         professor: {
           id: professorMock.id,
           nome: professorMock.nome,
           email: professorMock.email,
+          role: professorMock.role,
+          ativo: professorMock.ativo,
           criadoEm: professorMock.criadoEm,
           atualizadoEm: professorMock.atualizadoEm,
         },
         token: 'token-jwt',
       });
       expect(resultado.professor).not.toHaveProperty('senhaHash');
+    });
+
+    it('deve lançar AppError 403 quando o professor estiver inativo', async () => {
+      repositorioMock.findOneBy.mockResolvedValue({ ...professorMock, ativo: false });
+      bcryptMock.compare.mockResolvedValue(true);
+      const gerarTokenMock = jest.spyOn(JwtUtil, 'gerarToken');
+
+      await expect(professorService.login(dadosLogin)).rejects.toMatchObject({
+        statusCode: 403,
+        message: 'Usuário inativo. Acesso bloqueado.',
+      });
+
+      expect(gerarTokenMock).not.toHaveBeenCalled();
     });
 
     it('deve lançar AppError quando o e-mail não estiver cadastrado', async () => {

@@ -1,16 +1,20 @@
 /**
  * @description Utilitário para assinar e verificar JSON Web Tokens (JWT).
  * Lê o segredo e o tempo de expiração do arquivo .env configurado.
- * 
+ *
  * @author moisesaraujo
+ * @author caiolaurindo (inclusão de role e ativo no payload JWT para RBAC)
  */
 
 import jwt from 'jsonwebtoken';
 import { AppError } from './app-error';
+import { RoleUsuario } from '../models/professor.entity';
 
 export interface PayloadToken {
-  sub: number; 
+  sub: number;
   email: string;
+  role: RoleUsuario;
+  ativo: boolean;
 }
 
 export class JwtUtil {

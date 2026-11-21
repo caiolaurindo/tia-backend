@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { ProfessorService } from '../services/professor.service';
+import { AppError } from '../utils/app-error';
 
 export class ProfessorController {
   constructor(private readonly professorService: ProfessorService) {}
@@ -16,6 +17,9 @@ export class ProfessorController {
 
   me = async (req: Request, res: Response) => {
     const professor = await this.professorService.buscarPorId(req.usuario!.sub);
+    if (professor.ativo === false) {
+      throw new AppError('Usuário inativo. Acesso negado.', 403);
+    }
     const { senhaHash, ...professorSemSenha } = professor;
     res.json(professorSemSenha);
   };
