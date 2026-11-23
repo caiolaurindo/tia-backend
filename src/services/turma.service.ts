@@ -9,6 +9,18 @@ export class TurmaService extends ServiceGenerico<Turma> {
     super(repositorio);
   }
 
+  async atualizarArquivamento(
+    id: number,
+    professorId: number,
+    arquivada: boolean
+  ): Promise<Turma> {
+    const turma = await this.buscarPorIdEProfessor(id, professorId);
+
+    turma.arquivada = arquivada;
+
+    return this.repositorio.save(turma);
+  }
+
 async listarPorProfessor(
   professorId: number,
   nome?: string,
