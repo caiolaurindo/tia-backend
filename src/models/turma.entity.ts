@@ -13,6 +13,9 @@ export class Turma extends EntidadeGenerica {
   @Column({ name: 'ano_letivo', type: 'int' })
   anoLetivo!: number;
 
+  @Column({ type: 'boolean', default: false })
+  arquivada!: boolean;
+
   @ManyToOne(() => Professor, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'professor_id' })
   professor!: Professor;

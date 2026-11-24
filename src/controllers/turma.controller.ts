@@ -53,4 +53,20 @@ listar = async (req: Request, res: Response) => {
     await this.turmaService.removerParaProfessor(Number(req.params.id), req.usuario!.sub);
     res.status(204).send();
   };
+
+  atualizarArquivamento = async (req: Request, res: Response) => {
+    const { arquivada } = req.body;
+
+    if (typeof arquivada !== 'boolean') {
+      throw new Error('O campo arquivada deve ser booleano.');
+    }
+
+    const turma = await this.turmaService.atualizarArquivamento(
+      Number(req.params.id),
+      req.usuario!.sub,
+      arquivada
+    );
+
+    res.json(turma);
+  };
 }
