@@ -4,8 +4,8 @@ import { ConquistaService } from '../services/conquista.service';
 export class ConquistaController {
   constructor(private readonly conquistaService: ConquistaService) {}
 
-  listar = async (_req: Request, res: Response) => {
-    res.json(await this.conquistaService.listarTodos());
+  listar = async (req: Request, res: Response) => {
+    res.json(await this.conquistaService.listarPorProfessor(req.usuario!.sub));
   };
 
   progresso = async (req: Request, res: Response) => {
@@ -13,19 +13,27 @@ export class ConquistaController {
   };
 
   buscarPorId = async (req: Request, res: Response) => {
-    res.json(await this.conquistaService.buscarPorId(Number(req.params.id)));
+    res.json(
+      await this.conquistaService.buscarPorIdEProfessor(Number(req.params.id), req.usuario!.sub)
+    );
   };
 
   criar = async (req: Request, res: Response) => {
-    res.status(201).json(await this.conquistaService.criarConquista(req.body));
+    res.status(201).json(await this.conquistaService.criarConquista(req.body, req.usuario!.sub));
   };
 
   atualizar = async (req: Request, res: Response) => {
-    res.json(await this.conquistaService.atualizarConquista(Number(req.params.id), req.body));
+    res.json(
+      await this.conquistaService.atualizarConquista(
+        Number(req.params.id),
+        req.body,
+        req.usuario!.sub
+      )
+    );
   };
 
   remover = async (req: Request, res: Response) => {
-    await this.conquistaService.remover(Number(req.params.id));
+    await this.conquistaService.removerParaProfessor(Number(req.params.id), req.usuario!.sub);
     res.status(204).send();
   };
 }
