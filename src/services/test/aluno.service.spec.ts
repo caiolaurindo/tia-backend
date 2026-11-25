@@ -1,6 +1,6 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { AlunoService } from '../aluno.service';
-import { Aluno } from '../../models/aluno.entity';
+import { Aluno, SituacaoAluno } from '../../models/aluno.entity';
 import { AppError } from '../../utils/app-error';
 
 describe('AlunoService (Testes Unitários)', () => {
@@ -15,6 +15,7 @@ describe('AlunoService (Testes Unitários)', () => {
     id: 1,
     nome: 'Lucas Pereira',
     dataNascimento: new Date('2018-05-10'),
+    situacao: SituacaoAluno.NO_RITMO,
     observacoes: 'Participativo',
     turma: { id: turmaIdMock } as any,
     criadoEm: new Date(),
