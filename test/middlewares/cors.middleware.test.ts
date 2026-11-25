@@ -142,5 +142,23 @@ describe('corsMiddleware', () => {
 
       corsMiddleware(req as Request, res as Response, customNext);
     });
+
+    it('deve permitir localhost:8081 quando configurado via ALLOWED_ORIGINS', (done) => {
+      process.env.ALLOWED_ORIGINS =
+        'http://localhost:3000,http://localhost:3001,http://localhost:8081';
+
+      req = {
+        headers: { origin: 'http://localhost:8081' },
+        method: 'GET',
+        url: '/api/v1/turmas',
+      };
+
+      const customNext: NextFunction = (err?: any) => {
+        expect(err).toBeUndefined();
+        done();
+      };
+
+      corsMiddleware(req as Request, res as Response, customNext);
+    });
   });
 });
