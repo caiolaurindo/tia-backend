@@ -25,10 +25,10 @@ const QUINZE_MINUTOS = 15 * 60 * 1000;
 
 export const LIMITES = {
   geral: {
-    windowMs: QUINZE_MINUTOS,
-    limit: 100,
-    mensagem: 'Muitas requisições. Tente novamente mais tarde.',
-  },
+  windowMs: QUINZE_MINUTOS,
+  limit: process.env.NODE_ENV === 'development' ? 1000 : 100,
+  mensagem: 'Muitas requisições. Tente novamente mais tarde.',
+},
   login: {
     windowMs: QUINZE_MINUTOS,
     limit: 10,
