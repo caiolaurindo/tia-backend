@@ -1,3 +1,4 @@
+
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { TurmaConquistaService } from '../turma-conquista.service';
 import { AppError } from '../../utils/app-error';
@@ -33,9 +34,26 @@ describe('TurmaConquistaService', () => {
   });
 
   describe('Vincular Conquista a Turma', () => {
+    it('deve lançar erro 404 se a conquista pertencer a outro professor', async () => {
+      turmaRepoMock.findOne.mockResolvedValue({ id: 1, professor: { id: 10 } });
+      conquistaRepoMock.findOneBy.mockResolvedValue({
+        id: 2,
+        nome: 'Conquista de outro professor',
+        professorId: 99,
+      });
+
+      await expect(service.vincularConquista(1, 2, 10)).rejects.toThrow(AppError);
+
+      expect(turmaConquistaRepoMock.save).not.toHaveBeenCalled();
+    });
+
     it('deve vincular uma conquista com sucesso se a turma pertencer ao professor', async () => {
       turmaRepoMock.findOne.mockResolvedValue({ id: 1, professor: { id: 10 } });
-      conquistaRepoMock.findOneBy.mockResolvedValue({ id: 2, nome: 'Primeiro Código' });
+      conquistaRepoMock.findOneBy.mockResolvedValue({
+        id: 2,
+        nome: 'Primeiro Código',
+        professorId: 10,
+      });
       turmaConquistaRepoMock.findOneBy.mockResolvedValue(null);
 
       const resultado = await service.vincularConquista(1, 2, 10);
@@ -59,8 +77,15 @@ describe('TurmaConquistaService', () => {
 
     it('deve lançar erro 409 se a conquista já estiver vinculada à turma', async () => {
       turmaRepoMock.findOne.mockResolvedValue({ id: 1, professor: { id: 10 } });
-      conquistaRepoMock.findOneBy.mockResolvedValue({ id: 2 });
-      turmaConquistaRepoMock.findOneBy.mockResolvedValue({ id: 1, turmaId: 1, conquistaId: 2 });
+      conquistaRepoMock.findOneBy.mockResolvedValue({
+        id: 2,
+        professorId: 10,
+      });
+      turmaConquistaRepoMock.findOneBy.mockResolvedValue({
+        id: 1,
+        turmaId: 1,
+        conquistaId: 2,
+      });
 
       await expect(service.vincularConquista(1, 2, 10)).rejects.toThrow(AppError);
     });
@@ -86,7 +111,11 @@ describe('TurmaConquistaService', () => {
   describe('Desvincular Conquista', () => {
     it('deve desvincular uma conquista com sucesso', async () => {
       turmaRepoMock.findOne.mockResolvedValue({ id: 1, professor: { id: 10 } });
-      turmaConquistaRepoMock.findOneBy.mockResolvedValue({ id: 1, turmaId: 1, conquistaId: 2 });
+      turmaConquistaRepoMock.findOneBy.mockResolvedValue({
+        id: 1,
+        turmaId: 1,
+        conquistaId: 2,
+      });
 
       await expect(service.desvincularConquista(1, 2, 10)).resolves.not.toThrow();
       expect(turmaConquistaRepoMock.remove).toHaveBeenCalled();
