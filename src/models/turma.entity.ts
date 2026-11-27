@@ -13,6 +13,18 @@ export class Turma extends EntidadeGenerica {
   @Column({ name: 'ano_letivo', type: 'int' })
   anoLetivo!: number;
 
+  @Column({ name: 'faixa_etaria', type: 'varchar', nullable: true })
+  faixaEtaria!: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  turno!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  descricao!: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  arquivada!: boolean;
+
   @ManyToOne(() => Professor, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'professor_id' })
   professor!: Professor;

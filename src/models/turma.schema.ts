@@ -5,6 +5,9 @@ export const criarTurmaSchema = z
     nome: z.string().trim().min(2, 'O nome da turma deve ter pelo menos 2 caracteres'),
     serie: z.string().trim().min(1, 'A série/nível é obrigatória'),
     anoLetivo: z.number().int().positive('O ano letivo deve ser válido'),
+    faixaEtaria: z.string().trim().optional().nullable(),
+    turno: z.string().trim().optional().nullable(),
+    descricao: z.string().trim().optional().nullable(),
   })
   .strict();
 

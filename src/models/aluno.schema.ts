@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { criarIdPositivoCoercao, dataNaoFuturaSchema } from './common.schema';
+import { SituacaoAluno } from './aluno.entity';
 
 export const criarAlunoSchema = z
   .object({
@@ -8,6 +9,8 @@ export const criarAlunoSchema = z
       'A data de nascimento deve estar no formato AAAA-MM-DD e ser uma data válida (ex: 2018-05-10)',
       'A data de nascimento não pode ser futura'
     ),
+    responsavel: z.string().trim().optional(),
+    situacao: z.enum(SituacaoAluno).optional(),
     observacoes: z.string().trim().optional(),
     turmaId: z.number().int().positive('Turma inválida'),
   })

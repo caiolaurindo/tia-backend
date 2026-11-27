@@ -10,12 +10,20 @@ import { createRegistroSchema, updateRegistroSchema } from '../models/registro.s
 import { alunoIdParamSchema, aulaIdParamSchema, idParamSchema } from '../models/common.schema';
 import { catchAsync } from '../utils/catch-async';
 import { autenticar } from '../middlewares/auth.middleware';
+import { TurmaConquista } from '../models/turma-conquista.entity';
+
 
 const registroRouter = Router();
 const repositorio = AppDataSource.getRepository(Registro);
 const alunoRepositorio = AppDataSource.getRepository(Aluno);
 const aulaRepositorio = AppDataSource.getRepository(Aula);
-const registroService = new RegistroService(repositorio, alunoRepositorio, aulaRepositorio);
+const turmaConquistaRepositorio = AppDataSource.getRepository(TurmaConquista);
+const registroService = new RegistroService(
+  repositorio,
+  alunoRepositorio,
+  aulaRepositorio,
+  turmaConquistaRepositorio
+);
 const registroController = new RegistroController(registroService);
 
 registroRouter.use(autenticar);

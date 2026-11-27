@@ -15,23 +15,47 @@ export interface ProgressoConquistaTurma {
   naoTrabalhado: number;
 }
 
+/**
+ * Cada conquista pertence a um professor. As rotas devem usar apenas os métodos
+ * "...Professor" abaixo; os herdados de ServiceGenerico (listarTodos, buscarPorId,
+ * atualizar, remover) não filtram por dono.
+ */
 export class ConquistaService extends ServiceGenerico<Conquista> {
   constructor(repositorio: Repository<Conquista>) {
     super(repositorio);
   }
 
-  async criarConquista(dados: CriarConquistaDTO) {
-    await this.garantirNomeUnico(dados.nome);
-    return this.criar(dados);
+  async listarPorProfessor(professorId: number): Promise<Conquista[]> {
+    return this.repositorio.find({ where: { professorId } });
   }
 
-  async atualizarConquista(id: number, dados: AtualizarConquistaDTO) {
-    if (dados.nome) await this.garantirNomeUnico(dados.nome, id);
-    return this.atualizar(id, dados);
+  async buscarPorIdEProfessor(id: number, professorId: number): Promise<Conquista> {
+    const conquista = await this.repositorio.findOneBy({ id, professorId });
+    if (!conquista) {
+      throw new AppError('Conquista não encontrada ou acesso não autorizado.', 404);
+    }
+    return conquista;
+  }
+
+  async criarConquista(dados: CriarConquistaDTO, professorId: number) {
+    await this.garantirNomeUnico(dados.nome, professorId);
+    return this.criar({ ...dados, professorId });
+  }
+
+  async atualizarConquista(id: number, dados: AtualizarConquistaDTO, professorId: number) {
+    await this.buscarPorIdEProfessor(id, professorId);
+    if (dados.nome) await this.garantirNomeUnico(dados.nome, professorId, id);
+    await this.repositorio.update(id, dados as any);
+    return this.buscarPorIdEProfessor(id, professorId);
+  }
+
+  async removerParaProfessor(id: number, professorId: number): Promise<void> {
+    await this.buscarPorIdEProfessor(id, professorId);
+    await this.repositorio.delete(id);
   }
 
   /**
-   * Progresso de cada conquista em cada turma do professor (só turmas onde a
+   * Progresso de cada conquista do professor em cada turma dele (só turmas onde a
    * conquista está vinculada). "Não trabalhado" = alunos da turma que não
    * estão nem conquistados nem em desenvolvimento (inclui quem não tem registro).
    * Só lê as tabelas de outros módulos; não altera nada deles.
@@ -43,7 +67,9 @@ export class ConquistaService extends ServiceGenerico<Conquista> {
       .createQueryBuilder(TurmaConquista, 'tc')
       .innerJoin('tc.turma', 't')
       .innerJoin('t.professor', 'p')
+      .innerJoin('tc.conquista', 'c')
       .where('p.id = :professorId', { professorId })
+      .andWhere('c.professorId = :professorId', { professorId })
       .select('tc.turmaId', 'turmaId')
       .addSelect('tc.conquistaId', 'conquistaId')
       .getRawMany<{ turmaId: number; conquistaId: number }>();
@@ -111,8 +137,9 @@ export class ConquistaService extends ServiceGenerico<Conquista> {
     });
   }
 
-  private async garantirNomeUnico(nome: string, ignorarId?: number) {
-    const existente = await this.repositorio.findOneBy({ nome });
+  // O nome só precisa ser único entre as conquistas do mesmo professor.
+  private async garantirNomeUnico(nome: string, professorId: number, ignorarId?: number) {
+    const existente = await this.repositorio.findOneBy({ nome, professorId });
     if (existente && existente.id !== ignorarId) {
       throw new AppError('Já existe uma conquista com esse nome.', 409);
     }

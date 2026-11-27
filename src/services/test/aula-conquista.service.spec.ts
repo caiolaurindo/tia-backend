@@ -1,3 +1,4 @@
+
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { AulaConquistaService } from '../aula-conquista.service';
 import { AulaConquista } from '../../models/aula-conquista.entity';
@@ -7,7 +8,7 @@ import { AppError } from '../../utils/app-error';
 
 /**
  * Testes unitários para o AulaConquistaService.
- * 
+ *
  * @author caiolaurindo
  */
 describe('AulaConquistaService (Testes Unitários)', () => {
@@ -25,6 +26,10 @@ describe('AulaConquistaService (Testes Unitários)', () => {
     nome: 'Animals and Pets',
     assunto: 'Vocabulário de animais domésticos',
     data: '2026-10-26',
+    horarioInicio: '10:00',
+    horarioFim: '11:00',
+    status: 'planejada',
+    atividades: [],
     turma: { id: 1 } as any,
     professor: { id: professorIdMock } as any,
     criadoEm: new Date(),
@@ -94,12 +99,17 @@ describe('AulaConquistaService (Testes Unitários)', () => {
       expect(aulaRepositorioMock.findOne).toHaveBeenCalledWith({
         where: { id: aulaIdMock, professor: { id: professorIdMock } },
       });
-      expect(conquistaRepositorioMock.findOneBy).toHaveBeenCalledWith({ id: conquistaIdMock });
+
+      expect(conquistaRepositorioMock.findOneBy).toHaveBeenCalledWith({
+        id: conquistaIdMock,
+      });
+
       expect(aulaConquistaRepositorioMock.create).toHaveBeenCalledWith({
         aula: { id: dto.aulaId },
         conquista: { id: dto.conquistaId },
         meta: dto.meta,
       });
+
       expect(aulaConquistaRepositorioMock.save).toHaveBeenCalledWith(aulaConquistaMock);
       expect(resultado).toEqual(aulaConquistaMock);
     });
@@ -168,11 +178,13 @@ describe('AulaConquistaService (Testes Unitários)', () => {
       expect(aulaRepositorioMock.findOne).toHaveBeenCalledWith({
         where: { id: aulaIdMock, professor: { id: professorIdMock } },
       });
+
       expect(aulaConquistaRepositorioMock.find).toHaveBeenCalledWith({
         where: { aula: { id: aulaIdMock } },
         relations: { conquista: true },
         order: { criadoEm: 'ASC' },
       });
+
       expect(resultado).toEqual([aulaConquistaMock]);
     });
 
@@ -199,6 +211,7 @@ describe('AulaConquistaService (Testes Unitários)', () => {
         },
         relations: { aula: true, conquista: true },
       });
+
       expect(resultado).toEqual(aulaConquistaMock);
     });
 
@@ -217,7 +230,10 @@ describe('AulaConquistaService (Testes Unitários)', () => {
   describe('Atualização e Exclusão', () => {
     it('deve atualizar a meta da conquista da aula com sucesso', async () => {
       const novaMeta = { meta: 'Meta revisada para 5 animais' };
-      const aulaConquistaAtualizada = { ...aulaConquistaMock, meta: novaMeta.meta };
+      const aulaConquistaAtualizada = {
+        ...aulaConquistaMock,
+        meta: novaMeta.meta,
+      };
 
       aulaConquistaRepositorioMock.findOne
         .mockResolvedValueOnce(aulaConquistaMock)
@@ -227,7 +243,10 @@ describe('AulaConquistaService (Testes Unitários)', () => {
 
       const resultado = await aulaConquistaService.atualizarMeta(1, novaMeta, professorIdMock);
 
-      expect(aulaConquistaRepositorioMock.update).toHaveBeenCalledWith(1, { meta: novaMeta.meta });
+      expect(aulaConquistaRepositorioMock.update).toHaveBeenCalledWith(1, {
+        meta: novaMeta.meta,
+      });
+
       expect(resultado.meta).toBe(novaMeta.meta);
     });
 

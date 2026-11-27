@@ -1,3 +1,4 @@
+
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import { AulaService } from '../aula.service';
 import { Aula } from '../../models/aula.entity';
@@ -6,7 +7,7 @@ import { AppError } from '../../utils/app-error';
 
 /**
  * Testes unitários para o AulaService.
- * 
+ *
  * @author caiolaurindo
  */
 describe('AulaService (Testes Unitários)', () => {
@@ -22,6 +23,10 @@ describe('AulaService (Testes Unitários)', () => {
     nome: 'Turma Kids A1',
     serie: '1º Ano',
     anoLetivo: 2026,
+    faixaEtaria: '6 a 7 anos',
+    turno: 'Manhã',
+    descricao: 'Turma de inglês infantil',
+    arquivada: false,
     criadoEm: new Date(),
     atualizadoEm: new Date(),
     professor: { id: professorIdMock } as any,
@@ -32,6 +37,10 @@ describe('AulaService (Testes Unitários)', () => {
     nome: 'Colors and Animals',
     assunto: 'Vocabulário de cores e animais em inglês',
     data: '2026-10-26',
+    horarioInicio: '10:00',
+    horarioFim: '11:00',
+    status: 'planejada',
+    atividades: [],
     turma: turmaMock,
     professor: { id: professorIdMock } as any,
     criadoEm: new Date(),
@@ -76,13 +85,19 @@ describe('AulaService (Testes Unitários)', () => {
       expect(turmaRepositorioMock.findOne).toHaveBeenCalledWith({
         where: { id: turmaIdMock, professor: { id: professorIdMock } },
       });
+
       expect(aulaRepositorioMock.create).toHaveBeenCalledWith({
         nome: dto.nome,
         assunto: dto.assunto,
         data: dto.data,
+        horarioInicio: null,
+        horarioFim: null,
+        status: 'planejada',
+        atividades: [],
         turma: { id: dto.turmaId },
         professor: { id: professorIdMock },
       });
+
       expect(aulaRepositorioMock.save).toHaveBeenCalledWith(aulaMock);
       expect(resultado).toEqual(aulaMock);
     });
@@ -114,6 +129,7 @@ describe('AulaService (Testes Unitários)', () => {
 
     it('deve criar uma aula com sucesso quando turmaRepositorio for omitido no construtor', async () => {
       const servicoSemTurmaRepo = new AulaService(aulaRepositorioMock as any);
+
       const dto = {
         nome: 'Shapes and Sizes',
         assunto: 'Geometria básica',
@@ -130,9 +146,14 @@ describe('AulaService (Testes Unitários)', () => {
         nome: dto.nome,
         assunto: dto.assunto,
         data: dto.data,
+        horarioInicio: null,
+        horarioFim: null,
+        status: 'planejada',
+        atividades: [],
         turma: { id: dto.turmaId },
         professor: { id: professorIdMock },
       });
+
       expect(aulaRepositorioMock.save).toHaveBeenCalledWith(aulaMock);
       expect(resultado).toEqual(aulaMock);
     });
@@ -149,6 +170,7 @@ describe('AulaService (Testes Unitários)', () => {
         relations: { turma: true },
         order: { data: 'DESC' },
       });
+
       expect(resultado).toHaveLength(1);
       expect(resultado[0].nome).toBe('Colors and Animals');
     });
@@ -166,6 +188,7 @@ describe('AulaService (Testes Unitários)', () => {
         relations: { turma: true },
         order: { data: 'DESC' },
       });
+
       expect(resultado).toEqual([aulaMock]);
     });
 
@@ -178,6 +201,7 @@ describe('AulaService (Testes Unitários)', () => {
         where: { id: 1, professor: { id: professorIdMock } },
         relations: { turma: true },
       });
+
       expect(resultado).toEqual(aulaMock);
     });
 
@@ -241,15 +265,18 @@ describe('AulaService (Testes Unitários)', () => {
       expect(turmaRepositorioMock.findOne).toHaveBeenCalledWith({
         where: { id: novaTurmaId, professor: { id: professorIdMock } },
       });
+
       expect(aulaRepositorioMock.update).toHaveBeenCalledWith(1, {
         turma: { id: novaTurmaId },
       });
+
       expect(resultado.turma.id).toBe(novaTurmaId);
     });
 
     it('deve lançar AppError 404 se a nova turma informada não existir ou não pertencer à professora', async () => {
       // STUB: aula existe
       aulaRepositorioMock.findOne.mockResolvedValue(aulaMock);
+
       // STUB: turma pesquisada não encontrada
       turmaRepositorioMock.findOne.mockResolvedValue(null);
 
@@ -271,6 +298,7 @@ describe('AulaService (Testes Unitários)', () => {
       aulaRepositorioMock.findOne
         .mockResolvedValueOnce(aulaMock)
         .mockResolvedValueOnce({ ...aulaMock, ...dadosAtualizados });
+
       aulaRepositorioMock.update.mockResolvedValue({ affected: 1 });
 
       const resultado = await servicoSemTurmaRepo.atualizarParaProfessor(1, dadosAtualizados, professorIdMock);
@@ -291,6 +319,7 @@ describe('AulaService (Testes Unitários)', () => {
         where: { id: 1, professor: { id: professorIdMock } },
         relations: { turma: true },
       });
+
       expect(aulaRepositorioMock.delete).toHaveBeenCalledWith(1);
     });
   });

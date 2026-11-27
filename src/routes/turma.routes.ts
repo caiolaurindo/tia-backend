@@ -22,6 +22,11 @@ turmaRouter.get(
   validarRequisicao(listarTurmaQuerySchema, 'query'),
   catchAsync(turmaController.listar)
 );
+turmaRouter.patch(
+  '/:id/arquivamento',
+  validarRequisicao({ params: idParamSchema }),
+  catchAsync(turmaController.atualizarArquivamento)
+);
 turmaRouter.get('/:id', validarRequisicao({ params: idParamSchema }), catchAsync(turmaController.buscarPorId));
 turmaRouter.post('/', validarRequisicao(criarTurmaSchema), catchAsync(turmaController.criar));
 turmaRouter.put('/:id', validarRequisicao({ params: idParamSchema, body: atualizarTurmaSchema }), catchAsync(turmaController.atualizar));

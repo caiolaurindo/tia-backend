@@ -7,7 +7,15 @@ import { AppError } from '../../utils/app-error';
 /** Query builder falso: todos os métodos encadeiam e getRawMany devolve o resultado. */
 function criarQueryBuilderMock(resultado: unknown[]) {
   const qb: any = {};
-  for (const metodo of ['innerJoin', 'where', 'select', 'addSelect', 'groupBy', 'addGroupBy']) {
+  for (const metodo of [
+    'innerJoin',
+    'where',
+    'andWhere',
+    'select',
+    'addSelect',
+    'groupBy',
+    'addGroupBy',
+  ]) {
     qb[metodo] = jest.fn();
     qb[metodo].mockReturnValue(qb);
   }
@@ -20,6 +28,8 @@ describe('ConquistaService (Testes Unitários)', () => {
   let conquistaService: ConquistaService;
   let repositorioMock: any;
 
+  const professorId = 7;
+
   const conquistaMock: Conquista = {
     id: 1,
     nome: 'Vocabulário Básico',
@@ -27,6 +37,7 @@ describe('ConquistaService (Testes Unitários)', () => {
     categoria: CategoriaConquista.VOCABULARY,
     nivel: 'A1',
     ativa: true,
+    professorId,
     criadoEm: new Date(),
     atualizadoEm: new Date(),
   };
@@ -45,8 +56,36 @@ describe('ConquistaService (Testes Unitários)', () => {
     conquistaService = new ConquistaService(repositorioMock);
   });
 
+  describe('Listagem e busca (por professor)', () => {
+    it('deve listar apenas as conquistas do professor', async () => {
+      repositorioMock.find.mockResolvedValue([conquistaMock]);
+
+      const resultado = await conquistaService.listarPorProfessor(professorId);
+
+      expect(repositorioMock.find).toHaveBeenCalledWith({ where: { professorId } });
+      expect(resultado).toEqual([conquistaMock]);
+    });
+
+    it('deve buscar a conquista pelo id e pelo professor', async () => {
+      repositorioMock.findOneBy.mockResolvedValue(conquistaMock);
+
+      const resultado = await conquistaService.buscarPorIdEProfessor(1, professorId);
+
+      expect(repositorioMock.findOneBy).toHaveBeenCalledWith({ id: 1, professorId });
+      expect(resultado).toEqual(conquistaMock);
+    });
+
+    it('deve lançar AppError 404 quando a conquista não existe ou é de outro professor', async () => {
+      repositorioMock.findOneBy.mockResolvedValue(null);
+
+      await expect(conquistaService.buscarPorIdEProfessor(1, 999)).rejects.toMatchObject({
+        statusCode: 404,
+      });
+    });
+  });
+
   describe('Criação de Conquistas', () => {
-    it('deve criar uma conquista com nome único', async () => {
+    it('deve criar uma conquista vinculada ao professor com nome único', async () => {
       const dto = {
         nome: conquistaMock.nome,
         descricao: conquistaMock.descricao,
@@ -58,21 +97,21 @@ describe('ConquistaService (Testes Unitários)', () => {
       repositorioMock.create.mockReturnValue(conquistaMock);
       repositorioMock.save.mockResolvedValue(conquistaMock);
 
-      const resultado = await conquistaService.criarConquista(dto);
+      const resultado = await conquistaService.criarConquista(dto, professorId);
 
-      expect(repositorioMock.findOneBy).toHaveBeenCalledWith({ nome: dto.nome });
-      expect(repositorioMock.create).toHaveBeenCalledWith(dto);
+      expect(repositorioMock.findOneBy).toHaveBeenCalledWith({ nome: dto.nome, professorId });
+      expect(repositorioMock.create).toHaveBeenCalledWith({ ...dto, professorId });
       expect(repositorioMock.save).toHaveBeenCalledWith(conquistaMock);
       expect(resultado).toEqual(conquistaMock);
     });
 
-    it('deve lançar AppError 409 ao tentar criar conquista com nome duplicado', async () => {
+    it('deve lançar AppError 409 ao criar conquista com nome já usado pelo mesmo professor', async () => {
       const dto = { nome: conquistaMock.nome, categoria: conquistaMock.categoria };
       repositorioMock.findOneBy.mockResolvedValue(conquistaMock);
 
-      await expect(conquistaService.criarConquista(dto)).rejects.toThrow(AppError);
+      await expect(conquistaService.criarConquista(dto, professorId)).rejects.toThrow(AppError);
 
-      await expect(conquistaService.criarConquista(dto)).rejects.toMatchObject({
+      await expect(conquistaService.criarConquista(dto, professorId)).rejects.toMatchObject({
         statusCode: 409,
         message: 'Já existe uma conquista com esse nome.',
       });
@@ -87,12 +126,12 @@ describe('ConquistaService (Testes Unitários)', () => {
       const conquistaAtualizada = { ...conquistaMock, ...dto };
 
       repositorioMock.findOneBy
+        .mockResolvedValueOnce(conquistaMock) // dono da conquista
         .mockResolvedValueOnce(conquistaMock) // garantirNomeUnico (mesmo id)
-        .mockResolvedValueOnce(conquistaMock) // buscarPorId antes do update
-        .mockResolvedValueOnce(conquistaAtualizada); // buscarPorId depois do update
+        .mockResolvedValueOnce(conquistaAtualizada); // busca depois do update
       repositorioMock.update.mockResolvedValue({ affected: 1 });
 
-      const resultado = await conquistaService.atualizarConquista(1, dto);
+      const resultado = await conquistaService.atualizarConquista(1, dto, professorId);
 
       expect(repositorioMock.update).toHaveBeenCalledWith(1, dto);
       expect(resultado.descricao).toBe('Descrição atualizada');
@@ -107,7 +146,7 @@ describe('ConquistaService (Testes Unitários)', () => {
         .mockResolvedValueOnce(conquistaAtualizada);
       repositorioMock.update.mockResolvedValue({ affected: 1 });
 
-      const resultado = await conquistaService.atualizarConquista(1, dto);
+      const resultado = await conquistaService.atualizarConquista(1, dto, professorId);
 
       expect(repositorioMock.update).toHaveBeenCalledWith(1, dto);
       expect(resultado.descricao).toBe('Nova descrição');
@@ -117,23 +156,26 @@ describe('ConquistaService (Testes Unitários)', () => {
       const arquivada = { ...conquistaMock, ativa: false };
 
       repositorioMock.findOneBy
-        .mockResolvedValueOnce(conquistaMock) // buscarPorId antes do update
-        .mockResolvedValueOnce(arquivada); // buscarPorId depois do update
+        .mockResolvedValueOnce(conquistaMock) // dono da conquista
+        .mockResolvedValueOnce(arquivada); // busca depois do update
       repositorioMock.update.mockResolvedValue({ affected: 1 });
 
-      const resultado = await conquistaService.atualizarConquista(1, { ativa: false });
+      const resultado = await conquistaService.atualizarConquista(1, { ativa: false }, professorId);
 
       expect(repositorioMock.update).toHaveBeenCalledWith(1, { ativa: false });
-      expect(repositorioMock.findOneBy).not.toHaveBeenCalledWith({ nome: expect.anything() });
+      expect(repositorioMock.findOneBy).toHaveBeenCalledTimes(2);
       expect(resultado.ativa).toBe(false);
     });
 
-    it('deve lançar AppError 409 ao tentar atualizar para um nome já usado por outra conquista', async () => {
+    it('deve lançar AppError 409 ao atualizar para um nome já usado por outra conquista do professor', async () => {
       const outraConquista = { ...conquistaMock, id: 2, nome: 'Nome Existente' };
-      repositorioMock.findOneBy.mockResolvedValue(outraConquista);
+
+      repositorioMock.findOneBy
+        .mockResolvedValueOnce(conquistaMock) // dono da conquista
+        .mockResolvedValueOnce(outraConquista); // garantirNomeUnico
 
       await expect(
-        conquistaService.atualizarConquista(1, { nome: 'Nome Existente' })
+        conquistaService.atualizarConquista(1, { nome: 'Nome Existente' }, professorId)
       ).rejects.toMatchObject({
         statusCode: 409,
         message: 'Já existe uma conquista com esse nome.',
@@ -141,11 +183,41 @@ describe('ConquistaService (Testes Unitários)', () => {
 
       expect(repositorioMock.update).not.toHaveBeenCalled();
     });
+
+    it('deve lançar AppError 404 e não atualizar conquista de outro professor', async () => {
+      repositorioMock.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        conquistaService.atualizarConquista(1, { ativa: false }, 999)
+      ).rejects.toMatchObject({ statusCode: 404 });
+
+      expect(repositorioMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Remoção de Conquistas', () => {
+    it('deve remover a conquista do próprio professor', async () => {
+      repositorioMock.findOneBy.mockResolvedValue(conquistaMock);
+      repositorioMock.delete.mockResolvedValue({ affected: 1 });
+
+      await conquistaService.removerParaProfessor(1, professorId);
+
+      expect(repositorioMock.findOneBy).toHaveBeenCalledWith({ id: 1, professorId });
+      expect(repositorioMock.delete).toHaveBeenCalledWith(1);
+    });
+
+    it('deve lançar AppError 404 e não remover conquista de outro professor', async () => {
+      repositorioMock.findOneBy.mockResolvedValue(null);
+
+      await expect(conquistaService.removerParaProfessor(1, 999)).rejects.toMatchObject({
+        statusCode: 404,
+      });
+
+      expect(repositorioMock.delete).not.toHaveBeenCalled();
+    });
   });
 
   describe('Progresso por turma', () => {
-    const professorId = 99;
-
     it('deve retornar lista vazia, sem consultar alunos, quando não há conquistas vinculadas', async () => {
       const qbVinculos = criarQueryBuilderMock([]);
       repositorioMock.manager.createQueryBuilder.mockReturnValueOnce(qbVinculos);
@@ -155,6 +227,17 @@ describe('ConquistaService (Testes Unitários)', () => {
       expect(resultado).toEqual([]);
       expect(repositorioMock.manager.createQueryBuilder).toHaveBeenCalledTimes(1);
       expect(qbVinculos.where).toHaveBeenCalledWith('p.id = :professorId', { professorId });
+    });
+
+    it('deve considerar só conquistas do próprio professor nos vínculos', async () => {
+      const qbVinculos = criarQueryBuilderMock([]);
+      repositorioMock.manager.createQueryBuilder.mockReturnValueOnce(qbVinculos);
+
+      await conquistaService.progressoPorTurma(professorId);
+
+      expect(qbVinculos.andWhere).toHaveBeenCalledWith('c.professorId = :professorId', {
+        professorId,
+      });
     });
 
     it('deve somar os status e calcular "não trabalhado" pelo total de alunos da turma', async () => {

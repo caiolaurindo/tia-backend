@@ -15,9 +15,9 @@ export class TurmaConquistaService {
     await this.validarPosseTurma(turmaId, professorId);
 
     const conquistaExiste = await this.conquistaRepo.findOneBy({ id: conquistaId });
-    if (!conquistaExiste) {
-      throw new AppError('Conquista não encontrada.', 404);
-    }
+      if (!conquistaExiste || conquistaExiste.professorId !== professorId) {
+        throw new AppError('Conquista não encontrada.', 404);
+      }
 
     const vinculoExistente = await this.turmaConquistaRepo.findOneBy({ turmaId, conquistaId });
     if (vinculoExistente) {
