@@ -66,9 +66,13 @@ export class AulaService extends ServiceGenerico<Aula> {
       nome: dados.nome,
       assunto: dados.assunto,
       data: dados.data,
+      horarioInicio: dados.horarioInicio ?? null,
+      horarioFim: dados.horarioFim ?? null,
+      status: dados.status ?? 'planejada',
+      atividades: dados.atividades ?? [],
       turma: { id: dados.turmaId } as Turma,
       professor: { id: professorId } as any,
-    });
+    }); 
 
     return this.repositorio.save(aula);
   }
