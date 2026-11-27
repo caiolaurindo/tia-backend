@@ -41,8 +41,8 @@ describe('RegistroService (Testes Unitários)', () => {
       const resultado = await service.listarTodos(professorIdMock);
 
       expect(registroRepoMock.find).toHaveBeenCalledWith({
-        where: { aula: { professor: { id: professorIdMock } } },
-        relations: { aluno: true, aula: true },
+        where: { aluno: { turma: { professor: { id: professorIdMock } } } },
+        relations: { aluno: true, aula: true, conquista: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toEqual(registrosSimulados);
@@ -170,9 +170,9 @@ describe('RegistroService (Testes Unitários)', () => {
       expect(registroRepoMock.find).toHaveBeenCalledWith({
         where: {
           alunoId: alunoIdMock,
-          aula: { professor: { id: professorIdMock } },
+          aluno: { turma: { professor: { id: professorIdMock } } },
         },
-        relations: { aula: true },
+        relations: { aula: true, conquista: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toHaveLength(1);
@@ -186,7 +186,7 @@ describe('RegistroService (Testes Unitários)', () => {
       expect(alunoRepoMock.findOne).not.toHaveBeenCalled();
       expect(registroRepoMock.find).toHaveBeenCalledWith({
         where: { alunoId: alunoIdMock },
-        relations: { aula: true },
+        relations: { aula: true, conquista: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toHaveLength(1);
@@ -215,7 +215,7 @@ describe('RegistroService (Testes Unitários)', () => {
           aulaId: aulaIdMock,
           aula: { professor: { id: professorIdMock } },
         },
-        relations: { aluno: true },
+        relations: { aluno: true, conquista: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toHaveLength(1);
@@ -229,7 +229,7 @@ describe('RegistroService (Testes Unitários)', () => {
       expect(aulaRepoMock.findOne).not.toHaveBeenCalled();
       expect(registroRepoMock.find).toHaveBeenCalledWith({
         where: { aulaId: aulaIdMock },
-        relations: { aluno: true },
+        relations: { aluno: true, conquista: true },
         order: { data: 'DESC' },
       });
       expect(resultado).toHaveLength(1);
@@ -285,6 +285,53 @@ describe('RegistroService (Testes Unitários)', () => {
       await service.remover(1, professorIdMock);
 
       expect(registroRepoMock.remove).toHaveBeenCalledWith(registroExistente);
+    });
+  });
+
+  describe('Aula opcional e conquista', () => {
+    it('deve criar registro sem aula, validando só o aluno', async () => {
+      alunoRepoMock.findOne.mockResolvedValue({ id: alunoIdMock, turma: { id: turmaIdMock } });
+
+      const resultado = await service.criar(
+        { alunoId: alunoIdMock, data: '2026-11-27', participacao: 'Boa' },
+        professorIdMock
+      );
+
+      expect(aulaRepoMock.findOne).not.toHaveBeenCalled();
+      expect(registroRepoMock.save).toHaveBeenCalledTimes(1);
+      expect(resultado).toEqual(expect.objectContaining({ alunoId: alunoIdMock }));
+    });
+
+    it('deve criar registro com conquista vinculada à turma do aluno', async () => {
+      const turmaConquistaRepoMock: any = {
+        findOneBy: jest.fn().mockResolvedValue({ id: 1 } as never),
+      };
+      const svc = new RegistroService(registroRepoMock, alunoRepoMock, aulaRepoMock, turmaConquistaRepoMock);
+      alunoRepoMock.findOne.mockResolvedValue({ id: alunoIdMock, turma: { id: turmaIdMock } });
+
+      await svc.criar({ alunoId: alunoIdMock, conquistaId: 7, data: '2026-11-27' }, professorIdMock);
+
+      expect(turmaConquistaRepoMock.findOneBy).toHaveBeenCalledWith({
+        turmaId: turmaIdMock,
+        conquistaId: 7,
+      });
+      expect(registroRepoMock.save).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve lançar AppError 400 se a conquista não estiver vinculada à turma do aluno', async () => {
+      const turmaConquistaRepoMock: any = {
+        findOneBy: jest.fn().mockResolvedValue(null as never),
+      };
+      const svc = new RegistroService(registroRepoMock, alunoRepoMock, aulaRepoMock, turmaConquistaRepoMock);
+      alunoRepoMock.findOne.mockResolvedValue({ id: alunoIdMock, turma: { id: turmaIdMock } });
+
+      await expect(
+        svc.criar({ alunoId: alunoIdMock, conquistaId: 7, data: '2026-11-27' }, professorIdMock)
+      ).rejects.toMatchObject({
+        statusCode: 400,
+        message: 'Esta conquista não está vinculada à turma do aluno.',
+      });
+      expect(registroRepoMock.save).not.toHaveBeenCalled();
     });
   });
 });
