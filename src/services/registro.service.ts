@@ -2,6 +2,7 @@ import { Repository } from 'typeorm';
 import { Registro } from '../models/registro.entity';
 import { Aluno } from '../models/aluno.entity';
 import { Aula } from '../models/aula.entity';
+import { TurmaConquista } from '../models/turma-conquista.entity';
 import { ServiceGenerico } from './base.service';
 import { CreateRegistroInput, UpdateRegistroInput } from '../models/registro.schema';
 import { AppError } from '../utils/app-error';
@@ -11,16 +12,18 @@ export class RegistroService extends ServiceGenerico<Registro> {
     private readonly registroRepository: Repository<Registro>,
     private readonly alunoRepository?: Repository<Aluno>,
     private readonly aulaRepository?: Repository<Aula>,
+    private readonly turmaConquistaRepository?: Repository<TurmaConquista>,
   ) {
     super(registroRepository);
   }
 
   private async validarVinculosDoProfessor(
     alunoId: number,
-    aulaId: number,
+    aulaId: number | null | undefined,
+    conquistaId: number | null | undefined,
     professorId?: number
   ): Promise<void> {
-    if (!this.alunoRepository || !this.aulaRepository || professorId === undefined) {
+    if (!this.alunoRepository || professorId === undefined) {
       return;
     }
 
@@ -33,22 +36,35 @@ export class RegistroService extends ServiceGenerico<Registro> {
       throw new AppError('Aluno não encontrado ou acesso não autorizado.', 404);
     }
 
-    const aula = await this.aulaRepository.findOne({
-      where: { id: aulaId, professor: { id: professorId } },
-      relations: { turma: true },
-    });
+    if (aulaId && this.aulaRepository) {
+      const aula = await this.aulaRepository.findOne({
+        where: { id: aulaId, professor: { id: professorId } },
+        relations: { turma: true },
+      });
 
-    if (!aula) {
-      throw new AppError('Aula não encontrada ou acesso não autorizado.', 404);
+      if (!aula) {
+        throw new AppError('Aula não encontrada ou acesso não autorizado.', 404);
+      }
+
+      if (aluno.turma.id !== aula.turma.id) {
+        throw new AppError('O aluno e a aula informados pertencem a turmas diferentes.', 400);
+      }
     }
 
-    if (aluno.turma.id !== aula.turma.id) {
-      throw new AppError('O aluno e a aula informados pertencem a turmas diferentes.', 400);
+    if (conquistaId && this.turmaConquistaRepository) {
+      const vinculo = await this.turmaConquistaRepository.findOneBy({
+        turmaId: aluno.turma.id,
+        conquistaId,
+      });
+
+      if (!vinculo) {
+        throw new AppError('Esta conquista não está vinculada à turma do aluno.', 400);
+      }
     }
   }
 
   override async criar(data: CreateRegistroInput, professorId?: number): Promise<Registro> {
-    await this.validarVinculosDoProfessor(data.alunoId, data.aulaId, professorId);
+    await this.validarVinculosDoProfessor(data.alunoId, data.aulaId, data.conquistaId, professorId);
     const registro = this.registroRepository.create(data);
     return await this.registroRepository.save(registro);
   }
@@ -56,8 +72,8 @@ export class RegistroService extends ServiceGenerico<Registro> {
   override async listarTodos(professorId?: number): Promise<Registro[]> {
     if (professorId !== undefined) {
       return await this.registroRepository.find({
-        where: { aula: { professor: { id: professorId } } },
-        relations: { aluno: true, aula: true },
+        where: { aluno: { turma: { professor: { id: professorId } } } },
+        relations: { aluno: true, aula: true, conquista: true },
         order: { data: 'DESC' },
       });
     }
@@ -68,9 +84,9 @@ export class RegistroService extends ServiceGenerico<Registro> {
     const registro = await this.registroRepository.findOne({
       where: {
         id,
-        ...(professorId !== undefined && { aula: { professor: { id: professorId } } }),
+        ...(professorId !== undefined && { aluno: { turma: { professor: { id: professorId } } } }),
       },
-      relations: { aluno: true, aula: true },
+      relations: { aluno: true, aula: true, conquista: true },
     });
     if (!registro) {
       throw new AppError(`Registro com ID ${id} não encontrado ou acesso não autorizado.`, 404);
@@ -91,9 +107,9 @@ export class RegistroService extends ServiceGenerico<Registro> {
     return await this.registroRepository.find({
       where: {
         alunoId,
-        ...(professorId !== undefined && { aula: { professor: { id: professorId } } }),
+        ...(professorId !== undefined && { aluno: { turma: { professor: { id: professorId } } } }),
       },
-      relations: { aula: true },
+      relations: { aula: true, conquista: true },
       order: { data: 'DESC' },
     });
   }
@@ -113,7 +129,7 @@ export class RegistroService extends ServiceGenerico<Registro> {
         aulaId,
         ...(professorId !== undefined && { aula: { professor: { id: professorId } } }),
       },
-      relations: { aluno: true },
+      relations: { aluno: true, conquista: true },
       order: { data: 'DESC' },
     });
   }
@@ -126,10 +142,11 @@ export class RegistroService extends ServiceGenerico<Registro> {
     const registro = await this.buscarPorId(id, professorId);
 
     const novoAlunoId = data.alunoId ?? registro.alunoId;
-    const novaAulaId = data.aulaId ?? registro.aulaId;
+    const novaAulaId = data.aulaId !== undefined ? data.aulaId : registro.aulaId;
+    const novaConquistaId = data.conquistaId !== undefined ? data.conquistaId : registro.conquistaId;
 
-    if (data.alunoId !== undefined || data.aulaId !== undefined) {
-      await this.validarVinculosDoProfessor(novoAlunoId, novaAulaId, professorId);
+    if (data.alunoId !== undefined || data.aulaId !== undefined || data.conquistaId !== undefined) {
+      await this.validarVinculosDoProfessor(novoAlunoId, novaAulaId, novaConquistaId, professorId);
     }
 
     Object.assign(registro, data);

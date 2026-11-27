@@ -4,7 +4,8 @@ import { dataISOSchema } from './common.schema';
 export const createRegistroSchema = z
   .object({
     alunoId: z.number().int().positive('O ID do aluno deve ser um número inteiro positivo'),
-    aulaId: z.number().int().positive('O ID da aula deve ser um número inteiro positivo'),
+    aulaId: z.number().int().positive('O ID da aula deve ser um número inteiro positivo').nullable().optional(),
+    conquistaId: z.number().int().positive('O ID da conquista deve ser um número inteiro positivo').nullable().optional(),
     data: dataISOSchema(
       'A data do registro deve estar no formato AAAA-MM-DD e ser uma data válida (ex: 2026-10-26)'
     ),

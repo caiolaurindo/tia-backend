@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { EntidadeGenerica } from './base.entity';
 import { Aluno } from './aluno.entity';
 import { Aula } from './aula.entity';
+import { Conquista } from './conquista.entity';
 
 /**
  * @author josiellysantos
@@ -12,8 +13,11 @@ export class Registro extends EntidadeGenerica {
   @Column({ name: 'aluno_id', type: 'int' })
   alunoId!: number;
 
-  @Column({ name: 'aula_id', type: 'int' })
-  aulaId!: number;
+  @Column({ name: 'aula_id', type: 'int', nullable: true })
+  aulaId?: number | null;
+
+  @Column({ name: 'conquista_id', type: 'int', nullable: true })
+  conquistaId?: number | null;
 
   @Column({ type: 'date' })
   data!: Date | string;
@@ -37,7 +41,11 @@ export class Registro extends EntidadeGenerica {
   @JoinColumn({ name: 'aluno_id' })
   aluno!: Aluno;
 
-  @ManyToOne(() => Aula, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Aula, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'aula_id' })
-  aula!: Aula;
+  aula?: Aula | null;
+
+  @ManyToOne(() => Conquista, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'conquista_id' })
+  conquista?: Conquista | null;
 }
