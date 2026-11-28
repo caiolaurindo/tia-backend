@@ -36,7 +36,7 @@ O projeto é desenvolvido pelos seguintes integrantes:
 | Hallysson Araújo Laurindo Silva | 00000859534 |
 | Josielly Rayssa Cruz Santos | 00000860060 |
 | Moisés Carlos de Araújo Neto | 00000859890 |
-| Caio Lucas Laurindo da Silva | 000000859629 |
+| Caio Lucas Laurindo da Silva | 00000859629 |
 
 ## ⚙️ Backend
 
