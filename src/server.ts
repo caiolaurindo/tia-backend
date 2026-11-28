@@ -15,8 +15,12 @@ async function inicializarServidor() {
       throw new Error('Variável de ambiente JWT_SECRET é obrigatória.');
     }
 
+    if (!process.env.DATABASE_URL?.trim()) {
+      throw new Error('Variável de ambiente DATABASE_URL é obrigatória (string de conexão do NeonDB).');
+    }
+
     await AppDataSource.initialize();
-    console.log('conectado ao banco de dados MySQL via TypeORM!');
+    console.log('conectado ao banco de dados PostgreSQL (NeonDB) via TypeORM!');
 
     
     app.listen(PORTA, () => {

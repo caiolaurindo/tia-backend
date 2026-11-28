@@ -7,7 +7,8 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "types": ["node", "jest"],
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"],
     "strict": true,
     "skipLibCheck": true
   },

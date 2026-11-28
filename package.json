@@ -6,7 +6,14 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "test": "jest",
-    "prepare": "husky"
+    "prepare": "husky",
+    "typeorm": "tsx ./node_modules/typeorm/cli.js -d src/data/data-source.ts",
+    "migration:generate": "tsx ./node_modules/typeorm/cli.js migration:generate -d src/data/data-source.ts",
+    "migration:create": "tsx ./node_modules/typeorm/cli.js migration:create",
+    "migration:run": "tsx ./node_modules/typeorm/cli.js migration:run -d src/data/data-source.ts",
+    "migration:revert": "tsx ./node_modules/typeorm/cli.js migration:revert -d src/data/data-source.ts",
+    "migration:show": "tsx ./node_modules/typeorm/cli.js migration:show -d src/data/data-source.ts",
+    "seed": "tsx src/data/seeds/seed.ts"
   },
   "repository": {
     "type": "git",
@@ -20,6 +27,7 @@
   },
   "homepage": "https://github.com/caiolaurindo/tia-backend#readme",
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
@@ -28,9 +36,10 @@
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.12.1",
-    "mysql2": "^3.24.4",
+    "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^1.1.1",
+    "ws": "^8.23.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
@@ -43,7 +52,9 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
     "@types/node": "^26.6.2",
+    "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "@types/ws": "^8.18.2",
     "husky": "^9.1.7",
     "jest": "^30.5.2",
     "supertest": "^7.2.2",

@@ -1,5 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
+import * as neon from "@neondatabase/serverless";
+import ws from "ws";
 const dotenv = require("dotenv");
 
 import { Professor } from '../models/professor.entity';
@@ -14,22 +16,39 @@ import { AulaConquista } from '../models/aula-conquista.entity';
 
 /**
  * @author moisesaraujo
- * @author caiolaurindo (inclusão das entidades Aula e AulaConquista)
+ * @author caiolaurindo (inclusão das entidades Aula e AulaConquista, migração para NeonDB/PostgreSQL)
  */
 
 dotenv.config();
 
 const isDevelopment = process.env.NODE_ENV === "development";
 
+/**
+ * DB_DRIVER define como a aplicação fala com o Neon:
+ * - "neon" (padrão): driver @neondatabase/serverless via WebSocket na porta 443.
+ *   Funciona mesmo em redes que bloqueiam a porta 5432 do Postgres.
+ * - "pg": driver TCP tradicional (porta 5432).
+ */
+const usarDriverNeon = (process.env.DB_DRIVER ?? "neon").toLowerCase() !== "pg";
+
+if (usarDriverNeon) {
+  neon.neonConfig.webSocketConstructor = ws;
+}
+
+/**
+ * Conexão com o PostgreSQL hospedado no NeonDB.
+ * O schema é controlado exclusivamente pelas migrations em src/data/migrations
+ * (synchronize desligado), executadas com `npm run migration:run`.
+ */
 export const AppDataSource = new DataSource({
-  type: "mysql",
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  synchronize: isDevelopment || !process.env.NODE_ENV,
-  logging: isDevelopment || !process.env.NODE_ENV,
+  type: "postgres",
+  url: process.env.DATABASE_URL,
+  ...(usarDriverNeon ? { driver: neon } : { ssl: { rejectUnauthorized: true } }),
+  synchronize: false,
+  migrationsRun: process.env.DB_MIGRATIONS_RUN === "true",
+  logging: isDevelopment,
+  migrations: [__dirname + "/migrations/*.{ts,js}"],
+  migrationsTableName: "migrations",
   entities: [
     Professor,
     Turma,

@@ -31,7 +31,7 @@
 ### Desenvolvimento & Código
 - [ ]  O código segue os padrões do projeto (lint, prettier, tipagem, nomenclatura e sonarQube).
 - [ ]  Removi códigos de teste temporários (`console.log`, prints de depuração, trechos comentados sem acréscimo informativo/desnecessários).
-- [ ]  Testei a alteração localmente em ambiente de desenvolvimento buildado, no docker e funciona como esperado.
+- [ ]  Testei a alteração localmente em ambiente de desenvolvimento buildado (com as migrations aplicadas) e funciona como esperado.
 
 ### Testes
 - [ ]  Escrevi testes unitários/integração para esta alteração (se aplicável).
