@@ -3,7 +3,7 @@
 > **Projeto:** TIA (Teaching Intelligent Assistant)  
 > **Contexto:** Projeto Integrador IV (PI 4) — Ciência da Computação / Sistemas de Informação (UNICAP)  
 > **Versão:** 1.0.0  
-> **Stack:** Node.js, TypeScript, Express, TypeORM, MySQL, Docker, Zod, JWT, Bcrypt  
+> **Stack:** Node.js, TypeScript, Express, TypeORM, PostgreSQL (NeonDB), Zod, JWT, Bcrypt  
 
 ---
 
@@ -43,7 +43,7 @@
 7. [Camada de Dados e Persistência](#7-camada-de-dados-e-persistência)
    - [Configuração do TypeORM](#71-configuração-do-typeorm)
    - [Auditoria e Herança de Entidades](#72-auditoria-e-herança-de-entidades)
-   - [Infraestrutura com Docker Compose](#73-infraestrutura-com-docker-compose)
+   - [Infraestrutura com NeonDB](#73-infraestrutura-com-neondb)
 8. [Guia de Implementação de Novos Módulos](#8-guia-de-implementação-de-novos-módulos)
 
 ---
@@ -101,10 +101,10 @@ O código é particionado verticalmente por **Módulos de Domínio** (`src/modul
 │         ▼                                                       │
 │  [src/data/data-source.ts] ── TypeORM Data Source               │
 └───────────────────────────────┬─────────────────────────────────┘
-                                │ Driver mysql2
+                                │ @neondatabase/serverless
                                 ▼
                   ┌───────────────────────────┐
-                  │   Banco MySQL 8.0 (Docker) │
+                  │ PostgreSQL (NeonDB, nuvem) │
                   └───────────────────────────┘
 ```
 
@@ -118,7 +118,7 @@ A separação é orientada ao princípio da responsabilidade única (SRP):
 | **Aplicação (`app.ts`)** | Configurar o Express, registrar middlewares transversais e acoplar os roteadores dos módulos. | Conexões diretas a banco ou escuta de porta (`listen`). |
 | **Controllers (`*.controller.ts`)** | Interceptar requisições HTTP, extrair parâmetros/body/auth, chamar o serviço e retornar status/JSON. | Consultas diretas ao banco via SQL ou regras de validação complexas. |
 | **Services (`*.service.ts`)** | Implementar as regras de negócio, hashing de senhas, validações de integridade de domínio e orquestrar repositórios. | Objetos `Request` e `Response` do Express. |
-| **Entities (`*.entity.ts`)** | Mapear as tabelas do MySQL, definir tipos de colunas, restrições e relacionamentos usando TypeORM. | Lógica de negócio ou formatação de apresentação. |
+| **Entities (`*.entity.ts`)** | Mapear as tabelas do PostgreSQL, definir tipos de colunas, restrições e relacionamentos usando TypeORM. | Lógica de negócio ou formatação de apresentação. |
 | **Schemas (`*.schema.ts`)** | Validar payloads brutos de entrada com Zod e fornecer tipos estáticos derivados (DTOs). | Acesso ao banco de dados. |
 | **Base Reutilizável (`src/common/base/`)** | Prover implementações genéricas reutilizáveis para entidades, serviços e rotas simples (DRY). | Regras específicas de um domínio particular. |
 
@@ -131,7 +131,6 @@ A separação é orientada ao princípio da responsabilidade única (SRP):
 ```plaintext
 tia-backend/
 ├── .env                              # Variáveis de ambiente (DB, Port, JWT)
-├── docker-compose.yaml               # Orquestração do MySQL 8.0 em container
 ├── package.json                      # Dependências, scripts e metadados npm
 ├── tsconfig.json                     # Configurações do compilador TypeScript
 ├── GUIA_DEV.md                       # Manual prático de desenvolvimento
@@ -140,7 +139,8 @@ tia-backend/
     ├── server.ts                     # Ponto de entrada (Entrypoint)
     ├── app.ts                        # Configuração da classe App Express
     ├── data/
-    │   └── data-source.ts            # Conexão TypeORM DataSource com MySQL
+    │   ├── data-source.ts            # Conexão TypeORM DataSource com PostgreSQL (NeonDB)
+    │   └── migrations/               # Migrations do schema do banco
     ├── common/                       # Recursos transversais e compartilhados
     │   ├── base/                     # Classes e geradores genéricos (Base Framework)
     │   │   ├── base.entity.ts        # Classe abstrata EntidadeGenerica (id, auditoria)
@@ -286,7 +286,7 @@ O projeto implementa diversos padrões de projeto consolidados pela engenharia d
 5. **Autenticação (se rota privada):** O middleware `autenticar` valida o token Bearer, decodifica o payload e injeta em `req.usuario`.
 6. **Controller:** O controller desempacota os dados da requisição e delega a execução ao serviço responsável.
 7. **Service:** Executa as validações de domínio (ex: verificar credenciais via `bcrypt.compare`).
-8. **Repositório / Banco:** Executa as operações necessárias na base de dados MySQL através do TypeORM.
+8. **Repositório / Banco:** Executa as operações necessárias na base de dados PostgreSQL (NeonDB) através do TypeORM.
 9. **Resposta:** O controller formata a resposta e envia o status HTTP (200, 201 ou 204) com o JSON correspondente.
 
 ### 5.2 Fluxo de Erro e Exceções
@@ -313,7 +313,7 @@ sequenceDiagram
     participant Ctrl as Controller
     participant Svc as Service
     participant Repo as TypeORM Repository
-    participant DB as MySQL (Docker)
+    participant DB as PostgreSQL (NeonDB)
     participant Err as error.middleware
 
     Cliente->>Express: Requisição HTTP (ex: POST /turmas)
@@ -387,8 +387,9 @@ Implementado por `manipuladorDeErros` em `src/common/middlewares/error.middlewar
 
 ### 7.1 Configuração do TypeORM
 A conexão é inicializada a partir de `src/data/data-source.ts` via `AppDataSource`:
-- **Driver:** MySQL (`mysql2`).
-- **Sincronização:** `synchronize: true` está ativo no ambiente atual de desenvolvimento, gerando e ajustando tabelas automaticamente a partir das entidades. Em ambiente de produção, este comportamento deve ser substituído por migrações controladas (`migrations`).
+- **Banco:** PostgreSQL hospedado no NeonDB, configurado pela variável `DATABASE_URL`.
+- **Driver:** `@neondatabase/serverless` (WebSocket na porta 443, padrão) ou `pg` (TCP na porta 5432), selecionado por `DB_DRIVER`.
+- **Sincronização:** `synchronize: false`. O schema é versionado por migrations em `src/data/migrations/`, aplicadas com `npm run migration:run` (ou automaticamente ao iniciar, com `DB_MIGRATIONS_RUN=true`).
 - **Registro de Entidades:** Cada nova entidade criada no projeto precisa ser declarada no array `entities: [...]` do `AppDataSource`.
 
 ### 7.2 Auditoria e Herança de Entidades
@@ -407,12 +408,11 @@ export abstract class EntidadeGenerica {
 ```
 Isso assegura que todas as tabelas mantenham rastreabilidade de criação e atualização sem duplicar decorators em cada arquivo.
 
-### 7.3 Infraestrutura com Docker Compose
-O banco de dados relacional é isolado em um container Docker, padronizando o ambiente de desenvolvimento:
-- **Imagem:** `mysql:8.0`
-- **Porta:** Mapeamento `3306:3306`
-- **Persistência:** Volume nomeado `mysql_data` montado em `/var/lib/mysql`, garantindo que os dados não sejam perdidos ao reiniciar o container.
-- **Variáveis de Ambiente:** Definidas em sincronia com o arquivo local `.env`.
+### 7.3 Infraestrutura com NeonDB
+O banco de dados é um PostgreSQL gerenciado no NeonDB, acessado pela internet — não há dependência de Docker nem de banco instalado localmente:
+- **Conexão:** string `DATABASE_URL` do Neon (com `sslmode=require`), definida no `.env`.
+- **Rede:** o driver padrão usa WebSocket seguro (porta 443), funcionando mesmo em redes que bloqueiam a porta 5432.
+- **Schema:** criado e evoluído exclusivamente por migrations TypeORM.
 
 ---
 
@@ -429,6 +429,7 @@ Passo 1: Entidade  ──►  Passo 2: Schemas  ──►  Passo 3: Service  ─
    - Herdar de `EntidadeGenerica`.
    - Utilizar decorators `@Entity()`, `@Column()` e decorators relacionais (`@ManyToOne`, `@OneToMany`) quando aplicável.
    - Declarar a nova entidade no array `entities` de `src/data/data-source.ts`.
+   - Gerar e aplicar a migration: `npm run migration:generate -- src/data/migrations/<Nome>` e `npm run migration:run`.
 
 2. **Definir os Schemas Zod (`src/modules/<modulo>/<modulo>.schema.ts`):**
    - Criar schemas para criação e atualização (`criar<Modulo>Schema`).
@@ -456,8 +457,8 @@ Passo 1: Entidade  ──►  Passo 2: Schemas  ──►  Passo 3: Service  ─
 | Comando | Descrição |
 |---|---|
 | `npm run dev` | Inicia o servidor em modo de desenvolvimento com hot-reload via `tsx`. |
-| `docker compose up -d` | Inicia o container do banco de dados MySQL em segundo plano. |
-| `docker compose ps` | Exibe o status de execução do container do banco de dados. |
-| `docker compose logs -f db` | Exibe os logs contínuos do MySQL para monitoramento e depuração. |
-| `docker compose down` | Para e remove o container do banco, preservando o volume de dados. |
-| `docker compose down -v` | **Atenção:** Remove o container e exclui definitivamente os dados persistidos no volume. |
+| `npm run migration:run` | Aplica no NeonDB as migrations pendentes. |
+| `npm run migration:show` | Lista as migrations e quais já foram aplicadas. |
+| `npm run migration:generate -- src/data/migrations/Nome` | Gera uma migration a partir das diferenças entre entidades e banco. |
+| `npm run migration:create -- src/data/migrations/Nome` | Cria uma migration vazia. |
+| `npm run migration:revert` | Desfaz a última migration aplicada. |

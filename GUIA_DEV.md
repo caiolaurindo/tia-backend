@@ -15,7 +15,7 @@ src/
 │   ├── middlewares/    # Middlewares do Express (Erros, Validação Zod, Autenticação JWT)
 │   ├── types/          # Extensões de tipo do TypeScript (Express Request)
 │   └── utils/          # Classes utilitárias (AppError, catchAsync, JwtUtil)
-├── data/               # Configuração da camada de persistência com TypeORM e MySQL
+├── data/               # Configuração do TypeORM (PostgreSQL/NeonDB) e migrations
 ├── modules/            # Módulos de domínio funcional (Professor, Turma, Aluno, etc.)
 ├── app.ts              # Configuração da aplicação Express, middlewares e rotas
 └── server.ts           # Ponto de entrada da aplicação e inicialização do servidor/banco
@@ -291,120 +291,72 @@ private configurarRotas(): void {
 
 ---
 
-## 5. Containerização com Docker (Banco de Dados)
+## 5. Banco de Dados (PostgreSQL no NeonDB)
 
-Para garantir que todos os desenvolvedores trabalhem exatamente com o mesmo ambiente de banco de dados, sem precisar instalar e configurar o MySQL localmente no sistema operacional, o projeto utiliza o **Docker** por meio do **Docker Compose**.
+O projeto usa um **PostgreSQL gerenciado no [Neon](https://neon.tech)**. Não é necessário instalar banco localmente nem usar Docker: basta ter a string de conexão do Neon no `.env`.
 
-> **Pré-requisito:** ter o Docker instalado, com o plugin Docker Compose v2. Confirme com `docker --version` e `docker compose version`.
-
-### 5.1 Como o Docker funciona no projeto?
-
-O Docker isola o serviço do **MySQL 8.0** dentro de um container leve e autossuficiente. Apenas o banco roda em container: a aplicação Node.js/Express continua rodando na máquina local (via `tsx`, com `npm run dev`) e se conecta ao container através da porta exposta `3306`.
+### 5.1 Como a conexão funciona
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ Máquina Local (Host)                                    │
-│                                                         │
-│  ┌────────────────────────┐     ┌────────────────────┐  │
-│  │ App Node.js / Express  │     │ Container Docker   │  │
-│  │ (porta 3000)           │ ──► │ MySQL 8.0          │  │
-│  │ TypeORM                │     │ (porta 3306)       │  │
-│  └────────────────────────┘     └────────────────────┘  │
-│                                           │             │
-│                                           ▼             │
-│                                 [ Volume mysql_data ]   │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────┐            ┌───────────────────────────┐
+│ Máquina Local            │  WebSocket │ NeonDB (nuvem)            │
+│ App Node.js / Express    │ ─────────► │ PostgreSQL                │
+│ TypeORM                  │  TLS/443   │ banco: neondb             │
+└──────────────────────────┘            └───────────────────────────┘
 ```
 
-Os dados ficam em um **volume nomeado** gerenciado pelo Docker, separado do ciclo de vida do container. Por isso, o container pode ser parado, recriado ou removido sem perder as tabelas e registros.
+A conexão é configurada em `src/data/data-source.ts` e controlada pela variável `DB_DRIVER`:
 
-### 5.2 Estrutura do `docker-compose.yml`
+| `DB_DRIVER` | Driver | Porta | Quando usar |
+|---|---|---|---|
+| `neon` (padrão) | `@neondatabase/serverless` (WebSocket) | 443 | Funciona em qualquer rede, inclusive redes que bloqueiam a porta 5432 (faculdade, empresa, alguns provedores). |
+| `pg` | `pg` (TCP tradicional) | 5432 | Ambientes de deploy/servidores com a porta 5432 liberada. |
 
-Crie ou atualize o arquivo `docker-compose.yml` na raiz do projeto com o seguinte conteúdo:
+### 5.2 Configuração do `.env`
 
-```yaml
-services:
-  db:
-    image: mysql:8.0
-    container_name: tia_mysql_db
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: pi4_db
-      MYSQL_USER: user_pi4
-      MYSQL_PASSWORD: user_pi4_pass
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-
-volumes:
-  mysql_data:
-    driver: local
-```
-
-> **Nota:** o campo `version` foi omitido de propósito. Ele é obsoleto no Compose v2 e gera um aviso no terminal. Se você usa uma versão antiga (`docker-compose` v1), pode incluir `version: '3.8'` no topo.
-
-**Explicação das diretivas:**
-
-| Diretiva | O que faz |
-|---|---|
-| `image: mysql:8.0` | Baixa e utiliza a imagem oficial do MySQL na versão 8.0. |
-| `container_name` | Nomeia o container como `tia_mysql_db`, facilitando a identificação no Docker. |
-| `restart: always` | Reinicia o container automaticamente se ele cair ou quando o Docker for reiniciado. |
-| `MYSQL_ROOT_PASSWORD` | Senha do usuário `root`. |
-| `MYSQL_DATABASE` | Nome do banco criado automaticamente na primeira inicialização (`pi4_db`). |
-| `MYSQL_USER` / `MYSQL_PASSWORD` | Credenciais do usuário padrão da aplicação, com permissão total sobre `MYSQL_DATABASE`. |
-| `ports: "3306:3306"` | Mapeia a porta `3306` do container para a porta `3306` da máquina host (`host:container`), permitindo que o TypeORM (`data-source.ts`) e clientes gráficos (DBeaver, MySQL Workbench) se conectem em `localhost:3306`. |
-| `volumes: mysql_data:/var/lib/mysql` | Cria um volume persistente. Mesmo que o container seja parado ou deletado, os dados de tabelas, professores, turmas e registros não são perdidos. |
-
-> **Importante:** as variáveis `MYSQL_*` só são aplicadas na **primeira inicialização**, quando o volume ainda está vazio. Alterá-las depois não modifica um banco já criado. Para recriar o banco com novos valores, use `docker compose down -v` (veja a seção 5.4).
-
-> **Atenção:** essas credenciais são apenas para **desenvolvimento local**. Nunca reutilize esses valores em ambientes de produção.
-
-### 5.3 Sincronização com o `.env`
-
-As credenciais do `docker-compose.yml` devem bater com as variáveis declaradas no seu arquivo `.env` local:
+Copie o `.env.example` para `.env` e preencha a string de conexão (Neon Console → **Connection Details**):
 
 ```dotenv
-PORT=3000
+DATABASE_URL=postgresql://USUARIO:SENHA@HOST-pooler.REGIAO.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+DB_DRIVER=neon
+DB_MIGRATIONS_RUN=false
 
-# Conexão com o Container MySQL
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASS=root
-DB_NAME=pi4_db
-
-# Segurança
 JWT_SECRET=sua_chave_secreta_aqui
 JWT_EXPIRATION=1d
+
+PORT=3000
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:8081
 ```
 
-Pontos de atenção:
+> **Segurança:** o `.env` não é versionado (está no `.gitignore`). Nunca commite a string de conexão real.
 
-- **Usuário `root` ou usuário da aplicação:** o exemplo acima usa `root`, que corresponde a `MYSQL_ROOT_PASSWORD`. Se preferir usar o usuário da aplicação (com menos privilégios), troque para `DB_USER=user_pi4` e `DB_PASS=user_pi4_pass`.
-- **`DB_HOST=localhost`:** funciona porque a aplicação roda na máquina host e acessa a porta exposta pelo container. Se a aplicação também rodasse em um container, o host passaria a ser o nome do serviço (`db`).
-- **Segurança:** não versione o `.env` (mantenha-o no `.gitignore`) e troque `JWT_SECRET` por uma chave longa e aleatória.
+### 5.3 Migrations
 
-### 5.4 Comandos Práticos do Docker (Guia Rápido)
+O `synchronize` do TypeORM fica **desligado**: o schema do banco é criado e alterado somente por migrations, que ficam em `src/data/migrations/`.
 
 | Comando | O que faz |
 |---|---|
-| `docker compose up -d` | Inicia o banco de dados em segundo plano (*detached mode*). |
-| `docker compose ps` | Verifica se o container está em execução (status `running`/`Up`). |
-| `docker compose logs -f db` | Exibe os logs do MySQL em tempo real. Útil para depurar erros de conexão. |
-| `docker compose stop` | Para o banco de dados sem perder os dados armazenados. |
-| `docker compose down` | Remove o container (e a rede do projeto), mantendo os dados salvos no volume. |
-| `docker compose down -v` | **Reset total:** remove o container **e apaga o volume**, destruindo todos os dados. |
+| `npm run migration:run` | Executa no Neon todas as migrations pendentes (cria as tabelas na primeira vez). |
+| `npm run migration:show` | Lista as migrations e quais já foram aplicadas (`[X]`). |
+| `npm run migration:generate -- src/data/migrations/NomeDaMudanca` | Compara as entidades com o banco e gera uma migration com as diferenças. |
+| `npm run migration:create -- src/data/migrations/NomeDaMudanca` | Cria uma migration vazia para escrever SQL manualmente. |
+| `npm run migration:revert` | Desfaz a última migration aplicada. |
 
-> **Cuidado com o `down -v`:** use esse comando apenas se quiser limpar completamente o banco e recomeçar do zero. A operação não pode ser desfeita.
+**Fluxo ao alterar uma entidade:**
 
-### 5.5 Problemas Comuns
+1. Altere/crie o arquivo `*.entity.ts` (e registre-o em `entities` no `data-source.ts`, se for nova).
+2. Gere a migration: `npm run migration:generate -- src/data/migrations/DescricaoDaMudanca`.
+3. Revise o SQL gerado.
+4. Aplique: `npm run migration:run`.
+5. Commite a entidade **junto** com a migration.
 
-- **`ECONNREFUSED` logo após subir o container:** na primeira execução, o MySQL leva alguns segundos para inicializar. Acompanhe com `docker compose logs -f db` e aguarde a mensagem `ready for connections`.
-- **Porta `3306` já em uso:** provavelmente há um MySQL instalado localmente. Pare esse serviço ou altere o mapeamento para `"3307:3306"` e ajuste `DB_PORT=3307` no `.env`.
-- **`Access denied for user`:** as credenciais do `.env` não coincidem com as do `docker-compose.yml`, ou as variáveis `MYSQL_*` foram alteradas depois da primeira inicialização. Nesse caso, recrie o banco com `docker compose down -v` e suba novamente.
+> Com `DB_MIGRATIONS_RUN=true`, o servidor aplica as migrations pendentes automaticamente ao iniciar (útil em deploy).
+
+### 5.4 Problemas Comuns
+
+- **`timeout expired` com `DB_DRIVER=pg`:** a rede está bloqueando a porta 5432. Use `DB_DRIVER=neon`.
+- **`relation "..." does not exist`:** as migrations ainda não foram aplicadas. Rode `npm run migration:run`.
+- **`password authentication failed`:** a `DATABASE_URL` está incorreta ou a senha foi resetada no Neon Console.
 
 ---
 
@@ -416,12 +368,12 @@ Pontos de atenção:
    npm install
    ```
 
-2. Crie o arquivo `.env` na raiz do projeto (veja a [seção 5.3](#53-sincronização-com-o-env)).
+2. Crie o arquivo `.env` a partir do `.env.example` (veja a [seção 5.2](#52-configuração-do-env)).
 
-3. Suba o banco de dados MySQL via Docker (detalhes na [seção 5](#5-containerização-com-docker-banco-de-dados)):
+3. Crie/atualize as tabelas no Neon:
 
    ```bash
-   docker compose up -d
+   npm run migration:run
    ```
 
 4. Execute em modo de desenvolvimento (live reload via `tsx`):
