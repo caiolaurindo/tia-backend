@@ -12,7 +12,8 @@
     "migration:create": "tsx ./node_modules/typeorm/cli.js migration:create",
     "migration:run": "tsx ./node_modules/typeorm/cli.js migration:run -d src/data/data-source.ts",
     "migration:revert": "tsx ./node_modules/typeorm/cli.js migration:revert -d src/data/data-source.ts",
-    "migration:show": "tsx ./node_modules/typeorm/cli.js migration:show -d src/data/data-source.ts"
+    "migration:show": "tsx ./node_modules/typeorm/cli.js migration:show -d src/data/data-source.ts",
+    "seed": "tsx src/data/seeds/seed.ts"
   },
   "repository": {
     "type": "git",

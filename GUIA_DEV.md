@@ -352,7 +352,22 @@ O `synchronize` do TypeORM fica **desligado**: o schema do banco é criado e alt
 
 > Com `DB_MIGRATIONS_RUN=true`, o servidor aplica as migrations pendentes automaticamente ao iniciar (útil em deploy).
 
-### 5.4 Problemas Comuns
+### 5.4 Seed (dados de desenvolvimento)
+
+O arquivo `src/data/seeds/seed.ts` popula todas as tabelas com dados realistas de uma escola de inglês infantil:
+
+- 2 professores (login com senha `Senha@123`): `ana.ferreira@tia.com` (3 turmas) e `ricardo.mendes@tia.com` (1 turma);
+- 4 turmas com 10 alunos cada (2 em destaque, 6 no ritmo, 2 em atenção), com responsável e observações;
+- conquistas por professor (todas as categorias, níveis A1/A2, uma arquivada) vinculadas às turmas;
+- 10 aulas por turma, com datas relativas ao dia em que a seed roda: concluídas, em andamento, próxima e planejada, com horário do turno e atividades;
+- metas (conquistas) por aula, progresso de cada aluno em cada conquista e registros de acompanhamento das aulas concluídas, além de registros avulsos sem aula.
+
+| Comando | O que faz |
+|---|---|
+| `npm run seed` | Popula o banco. Não faz nada se o banco já tiver dados. |
+| `npm run seed -- --reset` | **Apaga todos os dados** e popula novamente. |
+
+### 5.5 Problemas Comuns
 
 - **`timeout expired` com `DB_DRIVER=pg`:** a rede está bloqueando a porta 5432. Use `DB_DRIVER=neon`.
 - **`relation "..." does not exist`:** as migrations ainda não foram aplicadas. Rode `npm run migration:run`.
