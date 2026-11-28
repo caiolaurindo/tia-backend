@@ -400,7 +400,7 @@ O arquivo `src/data/seeds/seed.ts` popula todas as tabelas com dados realistas d
 
 A API roda na Vercel como **uma única função serverless** (`api/index.js`), que recebe todas as rotas via `rewrites` do `vercel.json`.
 
-- **Build:** a Vercel executa `npm run build` (`tsc -p tsconfig.build.json`), gerando `dist/`. A função carrega `dist/vercel.js`. O projeto usa TypeScript 7, que não tem a API JS usada pelo compilador TS interno da Vercel, por isso o código é compilado antes.
+- **Build:** a Vercel executa `npm run build` (`tsc -p tsconfig.build.json`), gerando `dist/`. A função carrega `dist/vercel.js`, já compilado com o mesmo tsconfig usado localmente. A pasta `public/` existe só porque a Vercel exige uma pasta de saída não vazia (contém apenas um `robots.txt`).
 - **Conexão com o banco:** aberta na primeira requisição de cada instância e reaproveitada nas seguintes (`src/data/conexao.ts`). Se falhar, a API responde `503` em JSON.
 - **Migrations:** não rodam no deploy. Antes de publicar, rode `npm run migration:run` localmente com o `DATABASE_URL` de produção no `.env`.
 
