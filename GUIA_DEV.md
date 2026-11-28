@@ -396,3 +396,23 @@ O arquivo `src/data/seeds/seed.ts` popula todas as tabelas com dados realistas d
    ```bash
    npm run dev
    ```
+## 7. Deploy na Vercel
+
+A API roda na Vercel como **uma única função serverless** (`api/index.js`), que recebe todas as rotas via `rewrites` do `vercel.json`.
+
+- **Build:** a Vercel executa `npm run build` (`tsc -p tsconfig.build.json`), gerando `dist/`. A função carrega `dist/vercel.js`. O projeto usa TypeScript 7, que não tem a API JS usada pelo compilador TS interno da Vercel, por isso o código é compilado antes.
+- **Conexão com o banco:** aberta na primeira requisição de cada instância e reaproveitada nas seguintes (`src/data/conexao.ts`). Se falhar, a API responde `503` em JSON.
+- **Migrations:** não rodam no deploy. Antes de publicar, rode `npm run migration:run` localmente com o `DATABASE_URL` de produção no `.env`.
+
+Variáveis de ambiente (Project Settings > Environment Variables):
+
+| Variável | Valor |
+| --- | --- |
+| `DATABASE_URL` | String de conexão do Neon (use o host `-pooler`) |
+| `DB_DRIVER` | `neon` |
+| `JWT_SECRET` | Segredo forte (diferente do de desenvolvimento) |
+| `JWT_EXPIRATION` | ex: `1d` |
+| `ALLOWED_ORIGINS` | URLs do frontend web separadas por vírgula (o app mobile nativo não envia `Origin` e é liberado) |
+| `NODE_ENV` | `production` (a Vercel já define) |
+
+> `TRUST_PROXY` é definido automaticamente como `1` na Vercel. Na Vercel, o contador do rate limit fica em memória por instância, então o limite é aproximado.

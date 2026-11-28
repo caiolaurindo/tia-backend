@@ -45,7 +45,8 @@ class App {
    * Necessário atrás de proxy reverso/load balancer; sem isso o rate limit enxerga o IP do proxy.
    */
   private configurarProxy(): void {
-    const proxy = process.env.TRUST_PROXY?.trim();
+    // Na Vercel a API sempre fica atrás de 1 proxy, que preenche o X-Forwarded-For com o IP real.
+    const proxy = process.env.TRUST_PROXY?.trim() || (process.env.VERCEL ? '1' : '');
     if (!proxy) return;
 
     this.app.set('trust proxy', /^\d+$/.test(proxy) ? Number(proxy) : proxy);

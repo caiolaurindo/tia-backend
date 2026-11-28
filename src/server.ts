@@ -1,34 +1,28 @@
 import 'dotenv/config';
-import app from './app';
-import { AppDataSource } from './data/data-source';
 import 'reflect-metadata';
+import app from './app';
+import { conectarBanco } from './data/conexao';
 
 /**
+ * Servidor tradicional (desenvolvimento local / hospedagem com processo contínuo).
+ * Na Vercel o ponto de entrada é `src/vercel.ts`.
+ *
  * @author moisesaraujo
  */
 
-const PORTA = process.env.PORT;
+const PORTA = process.env.PORT || 3000;
 
 async function inicializarServidor() {
   try {
-    if (!process.env.JWT_SECRET?.trim()) {
-      throw new Error('Variável de ambiente JWT_SECRET é obrigatória.');
-    }
-
-    if (!process.env.DATABASE_URL?.trim()) {
-      throw new Error('Variável de ambiente DATABASE_URL é obrigatória (string de conexão do NeonDB).');
-    }
-
-    await AppDataSource.initialize();
+    await conectarBanco();
     console.log('conectado ao banco de dados PostgreSQL (NeonDB) via TypeORM!');
 
-    
     app.listen(PORTA, () => {
       console.log(`Servidor Express rodando na porta ${PORTA}`);
     });
   } catch (erro) {
     console.error('Erro ao inicializar a aplicação:', erro);
-    process.exit(1); 
+    process.exit(1);
   }
 }
 
